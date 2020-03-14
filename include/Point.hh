@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <string>
 
 template<typename T> struct Point
 {
@@ -43,3 +44,8 @@ template<typename T> inline bool operator< (const Point<T>&p, const Point<T>&q)
  // operator== useful only for integers. use norm(p-q) < eps instead
 template<typename T> inline bool operator==(const Point<T>&p, const Point<T>&q)
 { return (p.x == q.x) and (p.y == q.y); }
+
+template<typename T> std::string to_string(const Point<T>&p)
+{
+	return "(" + std::to_string(p.x) + ", " + std::to_string(p.y) + ")";
+};
