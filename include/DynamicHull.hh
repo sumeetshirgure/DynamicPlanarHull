@@ -26,22 +26,20 @@ private :
 	Point<Field> first, last;
 
 	template<typename Callback>
-	void traverse(TreapNode const*, Callback const&);
+	void traverse_chain(TreapNode const*, Callback const&);
 
 	bool update_lower_hull(Point<Field> const&);
 	bool update_upper_hull(Point<Field> const&);
 
 public :
 
-	using HullIterator = TreapNode const*;
-
 	DynamicHull(Point<Field> const&, Point<Field> const&);
 	~DynamicHull();
 
 	bool add_point(Point<Field> const&);
 
-	template<typename Callback> void traverse_lower(Callback const&);
-	template<typename Callback> void traverse_upper(Callback const&);
+	template<typename Callback> void traverse_lower_hull(Callback const&);
+	template<typename Callback> void traverse_upper_hull(Callback const&);
 
 };
 
@@ -146,27 +144,29 @@ void DynamicHull<Field>::join(TreapNode *&root,
 
 template<typename Field>
 template<typename Callback>
-void DynamicHull<Field>::traverse_lower(Callback const&callback)
+void DynamicHull<Field>::traverse_lower_hull(Callback const&callback)
 {
-	traverse(lower_hull, callback);
+	traverse_chain(lower_hull, callback);
+	callback(last);
 }
 
 template<typename Field>
 template<typename Callback>
-void DynamicHull<Field>::traverse_upper(Callback const&callback)
+void DynamicHull<Field>::traverse_upper_hull(Callback const&callback)
 {
-	traverse(upper_hull, callback);
+	traverse_chain(upper_hull, callback);
+	callback(last);
 }
 
 template<typename Field>
 template<typename Callback>
-void DynamicHull<Field>::traverse(TreapNode const*node, Callback const&callback)
+void DynamicHull<Field>::traverse_chain(TreapNode const*node, Callback const&callback)
 {
 	if( node == nullptr )
 		return;
-	traverse(node->left, callback);
-	callback(node);
-	traverse(node->right, callback);
+	traverse_chain(node->left, callback);
+	callback(node->u);
+	traverse_chain(node->right, callback);
 }
 
 template<typename Field>

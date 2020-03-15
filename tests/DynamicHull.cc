@@ -44,24 +44,20 @@ void test( std::vector< Point<T> > const& points )
 		auto lower_chain_iterator = lower_chain.begin();
 		auto upper_chain_iterator = upper_chain.begin();
 		auto check_lower_chain =
-		[&lower_chain_iterator](DynamicHull< int64_t >::HullIterator node)
-		{ 
-			assert(node->u == *lower_chain_iterator);
-			lower_chain_iterator++;
-			assert(node->v == *lower_chain_iterator);
+		[&lower_chain_iterator](Point< int64_t > const&point)
+		{
+			assert(point == *lower_chain_iterator++);
 		};
 		auto check_upper_chain =
-		[&upper_chain_iterator](DynamicHull< int64_t >::HullIterator node)
+		[&upper_chain_iterator](Point< int64_t > const&point)
 		{ 
-			assert(node->u == *upper_chain_iterator);
-			upper_chain_iterator++;
-			assert(node->v == *upper_chain_iterator);
+			assert(point == *upper_chain_iterator++);
 		};
 
-		dynamic_hull.traverse_lower(check_lower_chain);
-		assert(++lower_chain_iterator == lower_chain.end());
-		dynamic_hull.traverse_upper(check_upper_chain);
-		assert(++upper_chain_iterator == upper_chain.end());
+		dynamic_hull.traverse_lower_hull(check_lower_chain);
+		assert(lower_chain_iterator == lower_chain.end());
+		dynamic_hull.traverse_upper_hull(check_upper_chain);
+		assert(upper_chain_iterator == upper_chain.end());
 
 	};
 
