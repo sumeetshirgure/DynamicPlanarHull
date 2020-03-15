@@ -1,6 +1,7 @@
 #include "Point.hh"
 #include "ConvexHull.hh"
 #include "DynamicHull.hh"
+#include "Tangent.hh"
 
 #include <chrono>
 #include <cmath>
@@ -9,6 +10,32 @@
 #include <iomanip>
 #include <vector>
 #include <cassert>
+
+template<typename T>
+void test_tangents(
+	Point<T> const& point,
+	DynamicHull<T> & dynamic_hull, // TODO : const&
+	std::vector< Point<T> > const& lower_chain,
+	std::vector< Point<T> > const& upper_chain )
+{
+	std::vector< Point<T> > polygon;
+	polygon.insert(polygon.begin(),
+		lower_chain.begin(), lower_chain.end() - 1);
+	polygon.insert(polygon.end(),
+		upper_chain.rbegin(), upper_chain.rend() - 1);
+
+	if( polygon.size() < 3 )
+		return;
+
+	auto [outside, tangents] = get_tangents(point, polygon);
+	auto [test_outside, test_tangents] = dynamic_hull.get_tangents(point);
+	if( outside )
+	{
+		assert(test_outside);
+		assert((tangents.first - point)*(test_tangents.first - point) == 0);
+		assert((tangents.second - point)*(test_tangents.second - point) == 0);
+	}
+}
 
 template<typename T>
 void test( std::vector< Point<T> > const& points )
@@ -24,17 +51,20 @@ void test( std::vector< Point<T> > const& points )
 
 	DynamicHull< int64_t > dynamic_hull(polygon[0], polygon[1]);
 
+	auto [lower_chain, upper_chain] = convex_hull(polygon, true);
+
 	while( iter != points.end() )
 	{
 
 		auto const&point = *iter++;
 
+		test_tangents(point, dynamic_hull, lower_chain, upper_chain);
+
 		polygon.insert(
 			std::lower_bound(polygon.begin(), polygon.end(), point), point);
 
+		tie(lower_chain, upper_chain) = convex_hull(polygon, true);
 		dynamic_hull.add_point(point);
-
-		auto [lower_chain, upper_chain] = convex_hull(polygon, true);
 
 		std::cout << "(" << std::setw(6) << polygon.size() << "/"
 			<< std::setw(6) << points.size() << ") ["

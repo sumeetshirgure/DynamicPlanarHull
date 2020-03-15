@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <utility>
 #include <random>
 
 #include "Point.hh"
@@ -29,8 +30,10 @@ private :
 	template<typename Callback>
 	void traverse_chain(TreapNode const*, Callback const&);
 
-	bool update_lower_hull(Point<Field> const&);
-	bool update_upper_hull(Point<Field> const&);
+	bool update_lower_hull
+	(Point<Field> const&, Point<Field>&, Point<Field>&, bool);
+	bool update_upper_hull
+	(Point<Field> const&, Point<Field>&, Point<Field>&, bool);
 
 public :
 
@@ -38,6 +41,9 @@ public :
 	~DynamicHull();
 
 	bool add_point(Point<Field> const&);
+
+	std::pair< bool, std::pair< Point<Field>, Point<Field> > >
+	get_tangents (Point<Field> const&);
 
 	template<typename Callback> void traverse_lower_hull(Callback const&);
 	template<typename Callback> void traverse_upper_hull(Callback const&);
@@ -175,8 +181,11 @@ void DynamicHull<Field>::traverse_chain(TreapNode const*node, Callback const&cal
 template<typename Field>
 bool DynamicHull<Field>::add_point(Point<Field> const& point)
 {
-	bool lower_hull_updated = update_lower_hull(point);
-	bool upper_hull_updated = update_upper_hull(point);
+	Point<Field> left_tangent, right_tangent;
+	bool lower_hull_updated =
+		update_lower_hull(point, left_tangent, right_tangent, true);
+	bool upper_hull_updated =
+		update_upper_hull(point, left_tangent, right_tangent, true);
 
 	if( point < first ) first = point;
 	if( last < point  ) last  = point;
@@ -184,122 +193,240 @@ bool DynamicHull<Field>::add_point(Point<Field> const& point)
 }
 
 template<typename Field>
-bool DynamicHull<Field>::update_lower_hull(Point<Field> const& point)
+std::pair< bool, std::pair< Point<Field>, Point<Field> > >
+DynamicHull<Field>::get_tangents(Point<Field> const& point)
 {
-	auto left_tangent = [this, &point](TreapNode const&node) -> bool
+	bool outside = false;
+	std::pair< Point<Field>, Point<Field> > tangents;
+	if( point < first or last < point )
+	{
+		update_lower_hull(point, tangents.first, tangents.second, false);
+		update_upper_hull(point, tangents.second, tangents.first, false);
+		if( tangents.second < tangents.first )
+			std::swap(tangents.first, tangents.second);
+		outside = true;
+	}
+	else
+	{
+		bool lower_hull_updated = update_lower_hull(point,
+			tangents.first, tangents.second, false);
+		bool upper_hull_updated = false;
+		if( not lower_hull_updated )
+			upper_hull_updated = update_upper_hull(point,
+				tangents.first, tangents.second, false);
+		outside = ( lower_hull_updated or upper_hull_updated );
+	}
+	return std::make_pair(outside, tangents);
+}
+
+template<typename Field>
+bool DynamicHull<Field>::update_lower_hull(Point<Field> const& point,
+	Point<Field> &left_tangent, Point<Field> &right_tangent, bool update)
+{
+	auto left_cond = [this, &point](TreapNode const&node) -> bool
 	{ return (point - node.v) * (node.v - node.u) >= 0; };
 
-	auto right_tangent = [this, &point](TreapNode const&node) -> bool
+	auto right_cond = [this, &point](TreapNode const&node) -> bool
  	{ return (node.u - point) * (node.v - node.u) > 0; };
 
 	TreapNode *prefix = nullptr, *suffix = nullptr;
 
 	if( last < point )
 	{
-		cut(left_tangent, last, lower_hull, prefix, suffix);
-		erase(suffix);
-		join(lower_hull, prefix, new TreapNode(last, point));
+		cut(left_cond, left_tangent, lower_hull, prefix, suffix);
+
+		if( update )
+		{
+			erase(suffix);
+			join(lower_hull, prefix, new TreapNode(left_tangent, point));
+		}
+		else
+		{
+			join(lower_hull, prefix, suffix);
+		}
 		return true;
 	}
 
 	if( point < first )
 	{
-		cut(right_tangent, first, lower_hull, prefix, suffix);
-		erase(prefix);
-		join(lower_hull, new TreapNode(point, first), suffix);
+		cut(right_cond, right_tangent, lower_hull, prefix, suffix);
+
+		if( update )
+		{
+			erase(prefix);
+			join(lower_hull, new TreapNode(point, right_tangent), suffix);
+		}
+		else
+		{
+			join(lower_hull, prefix, suffix);
+		}
 		return true;
 	}
 
 	TreapNode *segment = nullptr;
-	Point<Field> left_split_point, right_split_point;
-	cut([this, &point](TreapNode const&node )-> bool
-		{return point < node.u;},
-		right_split_point, lower_hull, prefix, suffix);
-	cut([this, &point](TreapNode const&node) -> bool
-		{return !(node.v < point);},
-		left_split_point, prefix, prefix, segment);
+	Point<Field> left_split, right_split;
+
+	cut([this, &point](TreapNode const&node) {return point < node.u;},
+		right_split, lower_hull, prefix, suffix);
+	cut([this, &point](TreapNode const&node) {return !(node.v < point);},
+		left_split, prefix, prefix, segment);
 
 	Field cross_product = ((segment->v-segment->u) * (point-segment->u));
 	bool interior_point = (cross_product >= 0);
 
-	if( interior_point ) {
+	if( interior_point )
+	{
 		join(prefix, prefix, segment);
 		join(lower_hull, prefix, suffix);
 		return false;
 	}
 
-	erase(segment);
-
 	TreapNode *inside = nullptr, *outside = nullptr;
-	cut(left_tangent, left_split_point, prefix, outside, inside);
-	erase(inside);
-	join(prefix, outside, new TreapNode(left_split_point, point));
 
-	cut(right_tangent, right_split_point, suffix, inside, outside);
-	erase(inside);
-	join(suffix, new TreapNode(point, right_split_point), outside);
+	if( update )
+		erase(segment);
 
-	join(lower_hull, prefix, suffix);
+	cut(left_cond, left_split, prefix, outside, inside);
+	left_tangent = left_split;
+
+	if( update )
+	{
+		erase(inside);
+		join(prefix, outside, new TreapNode(left_split, point));
+	}
+	else
+	{
+		join(prefix, outside, inside);
+	}
+
+	cut(right_cond, right_split, suffix, inside, outside);
+	right_tangent = right_split;
+
+	if( update )
+	{
+		erase(inside);
+		join(suffix, new TreapNode(point, right_split), outside);
+	}
+	else
+	{
+		join(suffix, inside, outside);
+	}
+
+	if( update )
+	{
+		join(lower_hull, prefix, suffix);
+	}
+	else
+	{
+		join(prefix, prefix, segment);
+		join(lower_hull, prefix, suffix);
+	}
 
 	return true;
 }
 
 template<typename Field>
-bool DynamicHull<Field>::update_upper_hull(Point<Field> const& point)
+bool DynamicHull<Field>::update_upper_hull(Point<Field> const& point,
+	Point<Field> &left_tangent, Point<Field> &right_tangent, bool update)
 {
-	auto left_tangent = [this, &point](TreapNode const&node) -> bool
+	auto left_cond = [this, &point](TreapNode const&node) -> bool
 	{ return (node.v - node.u) * (point - node.v) >= 0; };
 
-	auto right_tangent = [this, &point](TreapNode const&node) -> bool
+	auto right_cond = [this, &point](TreapNode const&node) -> bool
 	{ return (node.v - node.u) * (node.u - point) > 0; };
 
 	TreapNode *prefix = nullptr, *suffix = nullptr;
 
 	if( last < point )
 	{
-		cut(left_tangent, last, upper_hull, prefix, suffix);
-		erase(suffix);
-		join(upper_hull, prefix, new TreapNode(last, point));
+		cut(left_cond, left_tangent, upper_hull, prefix, suffix);
+
+		if( update )
+		{
+			erase(suffix);
+			join(upper_hull, prefix, new TreapNode(left_tangent, point));
+		}
+		else
+		{
+			join(upper_hull, prefix, suffix);
+		}
 		return true;
 	}
 
 	if( point < first )
 	{
-		cut(right_tangent, first, upper_hull, prefix, suffix);
-		erase(prefix);
-		join(upper_hull, new TreapNode(point, first), suffix);
+		cut(right_cond, right_tangent, upper_hull, prefix, suffix);
+
+		if( update )
+		{
+			erase(prefix);
+			join(upper_hull, new TreapNode(point, right_tangent), suffix);
+		}
+		else
+		{
+			join(upper_hull, prefix, suffix);
+		}
 		return true;
 	}
 
 	TreapNode *segment = nullptr;
-	Point<Field> left_split_point, right_split_point;
-	cut([this, &point](TreapNode const&node )-> bool
-		{return point < node.u;},
-		right_split_point, upper_hull, prefix, suffix);
-	cut([this, &point](TreapNode const&node) -> bool
-		{return !(node.v < point);},
-		left_split_point, prefix, prefix, segment);
+	Point<Field> left_split, right_split;
+
+	cut([this, &point](TreapNode const&node) {return point < node.u;},
+		right_split, upper_hull, prefix, suffix);
+	cut([this, &point](TreapNode const&node) {return !(node.v < point);},
+		left_split, prefix, prefix, segment);
 
 	Field cross_product = ((segment->v-segment->u) * (point-segment->u));
 	bool interior_point = (cross_product <= 0);
 
-	if( interior_point ) {
+	if( interior_point )
+	{
 		join(prefix, prefix, segment);
 		join(upper_hull, prefix, suffix);
 		return false;
 	}
-	erase(segment);
 
 	TreapNode *inside = nullptr, *outside = nullptr;
-	cut(left_tangent, left_split_point, prefix, outside, inside);
-	erase(inside);
-	join(prefix, outside, new TreapNode(left_split_point, point));
 
-	cut(right_tangent, right_split_point, suffix, inside, outside);
-	erase(inside);
-	join(suffix, new TreapNode(point, right_split_point), outside);
+	if( update )
+		erase(segment);
 
-	join(upper_hull, prefix, suffix);
+	cut(left_cond, left_split, prefix, outside, inside);
+	left_tangent = left_split;
+
+	if( update )
+	{
+		erase(inside);
+		join(prefix, outside, new TreapNode(left_split, point));
+	}
+	else
+	{
+		join(prefix, outside, inside);
+	}
+
+	cut(right_cond, right_split, suffix, inside, outside);
+	right_tangent = right_split;
+
+	if( update )
+	{
+		erase(inside);
+		join(suffix, new TreapNode(point, right_split), outside);
+	}
+	else
+	{
+		join(suffix, inside, outside);
+	}
+
+	if( update )
+	{
+		join(upper_hull, prefix, suffix);
+	}
+	else
+	{
+		join(prefix, prefix, segment);
+		join(upper_hull, prefix, suffix);
+	}
 
 	return true;
 }
