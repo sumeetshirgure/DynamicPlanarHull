@@ -83,17 +83,19 @@ void random_test(int n_points)
 	test(points);
 }
 
-void circle_test(int n_points)
+void circle_test(int n_points, bool spiral = false)
 {
 	double omega = 2 * acos(-1) / n_points;
 
-	std::cout << "circle test with " << std::setw(6) << n_points << " points" << std::endl;
+	std::cout << (spiral ? "spiral" : "circle")
+		<< " test with " << std::setw(6) << n_points << " points" << std::endl;
 	int64_t radius = 1000000;
 	std::vector< Point<int64_t> > points(n_points);
 	for(int i = 0; i < n_points; i++) {
+		int radius_i = spiral ? radius / (i+1) : radius;
 		points[i] = Point< int64_t >(
-			radius * cos(i * omega),
-			radius * sin(i * omega)
+			radius_i * cos(i * omega),
+			radius_i * sin(i * omega)
 		);
 	}
 
@@ -112,6 +114,7 @@ int main()
 	{
 		random_test(n_points);
 		circle_test(n_points);
+		circle_test(n_points, true);
 	}
 	std::cout << "\ntests passed" << std::endl;
 
