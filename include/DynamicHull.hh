@@ -17,12 +17,12 @@ private :
 	struct TreapNode;
 
 	template<typename Predicate>
-	void cut(const Predicate &, Point<Field> &,
+	static void cut(const Predicate &, Point<Field> &,
 		TreapNode *, TreapNode *&, TreapNode *&);
 
-	void join(TreapNode *&, TreapNode *, TreapNode *);
+	static void join(TreapNode *&, TreapNode *, TreapNode *);
 
-	void erase(TreapNode *&);
+	static void erase(TreapNode *&);
 
 	TreapNode *lower_hull = nullptr, *upper_hull = nullptr;
 	Point<Field> first, last;
@@ -44,6 +44,9 @@ public :
 
 	std::pair< bool, std::pair< Point<Field>, Point<Field> > >
 	get_tangents (Point<Field> const&);
+
+	std::pair< Point<Field>, Point<Field> >
+	get_extremal_points(Point<Field> const&);
 
 	template<typename Callback> void traverse_lower_hull(Callback const&);
 	template<typename Callback> void traverse_upper_hull(Callback const&);
@@ -217,6 +220,41 @@ DynamicHull<Field>::get_tangents(Point<Field> const& point)
 		outside = ( lower_hull_updated or upper_hull_updated );
 	}
 	return std::make_pair(outside, tangents);
+}
+
+template<typename Field>
+std::pair< Point<Field>, Point<Field> >
+DynamicHull<Field>::get_extremal_points(Point<Field> const&direction)
+{
+
+	std::pair< Point<Field>, Point<Field> > points{first, last};
+
+	auto dip = [&direction](TreapNode const&node)
+	{ return ( (node.v - node.u) ^ direction ) <= 0; };
+
+	TreapNode const * it = ( direction.y > 0 or
+		(direction.y == 0 and direction.x < 0) ? upper_hull : lower_hull );
+
+	while( it != nullptr )
+	{
+		if( dip(*it) )
+		{
+			points = std::make_pair(it->u, it->v);
+			it = it->left;
+		}
+		else
+		{
+			it = it->right;
+		}
+	}
+
+	if( (points.second ^ direction) < (points.first ^ direction) )
+		points.second = points.first;
+	if( (points.first ^ direction) < (points.second ^ direction) )
+		points.first = points.second;
+
+
+	return points;
 }
 
 template<typename Field>

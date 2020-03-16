@@ -55,3 +55,37 @@ get_tangents(Point<Field> const& point,
 
 	return std::make_pair(true, tangents);
 }
+
+template<typename Field>
+std::pair< Point<Field>, Point<Field> >
+get_extreme_points(Point<Field> const& direction,
+	std::vector< Point<Field> > const& convex_polygon)
+{
+	size_t n = convex_polygon.size();
+	assert( n >= 3 );
+
+	int found = 1;
+	std::pair< Point<Field>, Point<Field> > points;
+	points.first = points.second = convex_polygon.front();
+	Field max_value = (points.first ^ direction);
+	for(size_t j = 0, i = 1; i < n; j = i++)
+	{
+		auto dot = (convex_polygon[i] ^ direction);
+		if( dot > max_value )
+		{
+			found = 1;
+			max_value = dot;
+			points.first = points.second = convex_polygon[i];
+		}
+		else if( dot == max_value )
+		{
+			found = 2;
+			points.second = convex_polygon[i];
+		}
+	}
+
+	if( points.second < points.first )
+		std::swap(points.first, points.second);
+
+	return points;
+}

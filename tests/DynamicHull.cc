@@ -12,7 +12,7 @@
 #include <cassert>
 
 template<typename T>
-void test_tangents(
+void test_extremes(
 	Point<T> const& point,
 	DynamicHull<T> & dynamic_hull, // TODO : const&
 	std::vector< Point<T> > const& lower_chain,
@@ -39,6 +39,21 @@ void test_tangents(
 		// assert((tangents.first - point)*(test_tangents.first - point) == 0);
 		// assert((tangents.second - point)*(test_tangents.second - point) == 0);
 	}
+
+	static int const n_points = 1000;
+	static double const omega = 2 * acos(-1) / n_points;
+
+	int64_t radius = 1000000;
+	for(int i = 0; i < n_points; i++) {
+		auto direction = Point< int64_t >(
+			radius * cos(i * omega),
+			radius * sin(i * omega) );
+
+		auto far_points = get_extreme_points(direction, polygon);
+		auto test_far = dynamic_hull.get_extremal_points(direction);
+		assert(far_points == test_far);
+	}
+
 }
 
 template<typename T>
@@ -62,7 +77,7 @@ void test( std::vector< Point<T> > const& points )
 
 		auto const&point = *iter++;
 
-		test_tangents(point, dynamic_hull, lower_chain, upper_chain);
+		test_extremes(point, dynamic_hull, lower_chain, upper_chain);
 
 		polygon.insert(
 			std::lower_bound(polygon.begin(), polygon.end(), point), point);
@@ -99,13 +114,12 @@ void test( std::vector< Point<T> > const& points )
 
 void random_test(int n_points)
 {
-
-	std::uniform_int_distribution< int64_t > random_generator(0, 1000000);
-	std::mt19937_64 random_engine(
+	static std::mt19937_64 random_engine(
 		std::chrono::steady_clock::now().time_since_epoch().count());
+	static std::uniform_int_distribution< int64_t > random_generator(0, 1000000);
 
-	auto generate_random_point =
-	[&random_generator, &random_engine] () -> Point<int64_t>  {
+	static auto generate_random_point =
+	[] () -> Point<int64_t>  {
 		return Point<int64_t>(random_generator(random_engine),
 			random_generator(random_engine));
 	};
@@ -133,9 +147,9 @@ void circle_test(int n_points, bool spiral = false)
 		);
 	}
 
-	std::shuffle(points.begin(), points.end(),
-		std::mt19937_64(std::chrono::steady_clock::now().
-			time_since_epoch().count()));
+	static std::mt19937_64 random_engine(
+		std::chrono::steady_clock::now().time_since_epoch().count());
+	std::shuffle(points.begin(), points.end(), random_engine);
 
 	test(points);
 }
