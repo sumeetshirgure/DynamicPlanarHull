@@ -30,17 +30,25 @@ get_tangents(Point<Field> const& point,
 		return std::make_pair(false , tangents);
 	}
 
-	auto ccw = [&point](Point<Field> const&u, Point<Field> const&v)
+	auto ccw_near = [&point](Point<Field> const&u, Point<Field> const&v)
 	{
 		Field cross_product = (v - point) * (u - point);
-		return cross_product > 0 or cross_product == 0 and u < v;
+		return cross_product > 0 or
+			cross_product == 0 and ((v - u) ^ (u - point)) < 0;
+	};
+
+	auto ccw_far = [&point](Point<Field> const&u, Point<Field> const&v)
+	{
+		Field cross_product = (v - point) * (u - point);
+		return cross_product > 0 or
+			cross_product == 0 and ((v - u) ^ (u - point)) > 0;
 	};
 
 	tangents.first  = *min_element(
-		convex_polygon.begin(), convex_polygon.end(), ccw);
+		convex_polygon.begin(), convex_polygon.end(), ccw_near);
 
 	tangents.second = *max_element(
-		convex_polygon.begin(), convex_polygon.end(), ccw);
+		convex_polygon.begin(), convex_polygon.end(), ccw_far);
 
 	if( tangents.second < tangents.first )
 		std::swap(tangents.first, tangents.second);

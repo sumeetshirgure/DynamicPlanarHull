@@ -29,11 +29,15 @@ void test_tangents(
 
 	auto [outside, tangents] = get_tangents(point, polygon);
 	auto [test_outside, test_tangents] = dynamic_hull.get_tangents(point);
+
+	assert(outside == test_outside);
 	if( outside )
 	{
-		assert(test_outside);
-		assert((tangents.first - point)*(test_tangents.first - point) == 0);
-		assert((tangents.second - point)*(test_tangents.second - point) == 0);
+		assert(tangents.first == test_tangents.first);
+		assert(tangents.second == test_tangents.second);
+		// A weaker test would be to check if the three points are collinear.
+		// assert((tangents.first - point)*(test_tangents.first - point) == 0);
+		// assert((tangents.second - point)*(test_tangents.second - point) == 0);
 	}
 }
 
