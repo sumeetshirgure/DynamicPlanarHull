@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <random>
 
 #include "Point.hh"
@@ -68,6 +69,8 @@ std::uniform_int_distribution< int32_t > DynamicHull<Field>::rng;
 template<typename Field>
 DynamicHull<Field>::DynamicHull(Point<Field> const&p, Point<Field> const&q)
 {
+	assert( not (p == q) );
+
 	if( p < q )
 		first = p, last = q;
 	else
