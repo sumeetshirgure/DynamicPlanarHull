@@ -112,7 +112,7 @@ void test( std::vector< Point<T> > const& points )
 
 }
 
-void random_test(int n_points)
+void random_test(size_t n_points)
 {
 	static std::mt19937_64 random_engine(
 		std::chrono::steady_clock::now().time_since_epoch().count());
