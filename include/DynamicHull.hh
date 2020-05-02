@@ -177,6 +177,7 @@ void DynamicHull<Field>::traverse_chain(TreapNode const*node, Callback const&cal
 	if( node == nullptr )
 		return;
 	traverse_chain(node->left, callback);
+	//std::cout << node->u.x << " " << node->u.y << std::endl;
 	callback(node->u);
 	traverse_chain(node->right, callback);
 }

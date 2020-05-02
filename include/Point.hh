@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <string>
+#include <iostream>
 
 template<typename T> struct Point
 {

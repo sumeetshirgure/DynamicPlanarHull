@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <vector>
 #include <cassert>
+#include <fstream>
 
 template<typename T>
 void test_extremes(
@@ -71,7 +72,13 @@ void test( std::vector< Point<T> > const& points )
 	DynamicHull< int64_t > dynamic_hull(polygon[0], polygon[1]);
 
 	auto [lower_chain, upper_chain] = convex_hull(polygon, true);
-
+	int iter_no = 0;
+	std::ofstream upper_hulls;
+	std::ofstream lower_hulls;
+	std::ofstream time_stamps;
+	upper_hulls.open("upper_hulls.txt");
+	lower_hulls.open("lower_hulls.txt");
+	time_stamps.open("time_stamps.txt");
 	while( iter != points.end() )
 	{
 
@@ -83,36 +90,62 @@ void test( std::vector< Point<T> > const& points )
 			std::lower_bound(polygon.begin(), polygon.end(), point), point);
 
 		tie(lower_chain, upper_chain) = convex_hull(polygon, true);
+		auto start = std::chrono::steady_clock::now();
 		dynamic_hull.add_point(point);
-
-		std::cout << "(" << std::setw(6) << polygon.size() << "/"
-			<< std::setw(6) << points.size() << ") ["
-			<< std::setw(6) << (lower_chain.size() + upper_chain.size() - 2)
-			<< "]\r";
+		auto end = std::chrono::steady_clock::now();
+		// std::cout << "(" << std::setw(6) << polygon.size() << "/"
+		// 	<< std::setw(6) << points.size() << ") ["
+		// 	<< std::setw(6) << (lower_chain.size() + upper_chain.size() - 2)
+		// 	<< "]\r";
 
 		auto lower_chain_iterator = lower_chain.begin();
 		auto upper_chain_iterator = upper_chain.begin();
 		auto check_lower_chain =
-		[&lower_chain_iterator](Point< int64_t > const&point)
+		[&lower_hulls](Point< int64_t > const&point)
 		{
-			assert(point == *lower_chain_iterator++);
+			//assert(point == *lower_chain_iterator++);
+			lower_hulls << point.x <<" " <<point.y <<" ";
 		};
 		auto check_upper_chain =
-		[&upper_chain_iterator](Point< int64_t > const&point)
-		{ 
-			assert(point == *upper_chain_iterator++);
+		[&upper_hulls](Point< int64_t > const&point)
+		{
+			//assert(point == *upper_chain_iterator++);
+			upper_hulls << point.x << " " << point.y << " ";
 		};
 
-		dynamic_hull.traverse_lower_hull(check_lower_chain);
-		assert(lower_chain_iterator == lower_chain.end());
-		dynamic_hull.traverse_upper_hull(check_upper_chain);
-		assert(upper_chain_iterator == upper_chain.end());
 
+
+		std::cout << "Iteration number - " << iter_no << " 	";
+		time_stamps << std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() << std::endl;
+		//std::cout << "======Printing Lower Hull======" << std::endl;
+		dynamic_hull.traverse_lower_hull(check_lower_chain);
+		//assert(lower_chain_iterator == lower_chain.end());
+		//std::cout << "======Printing Upper Hull=====" << std::endl;
+		dynamic_hull.traverse_upper_hull(check_upper_chain);
+		//assert(upper_chain_iterator == upper_chain.end());
+		std::cout << std::endl << std::endl;
+		iter_no ++;
+
+		upper_hulls <<std::endl;
+		lower_hulls <<std::endl;
 	};
+
+	int radius = 100000;
+	auto direction = Point< int64_t >(
+		1,
+		1 );
+	auto extreme_points = dynamic_hull.get_extremal_points(direction);
+	std::cout << "Extreme point 1 - " << extreme_points.first.x << " " << extreme_points.first.y << std::endl;
+	std::cout << "Extreme point 2 - " << extreme_points.second.x << " " << extreme_points.second.y << std::endl;
+
+	upper_hulls.close();
+	lower_hulls.close();
+	time_stamps.close();
+
 
 }
 
-void random_test(size_t n_points)
+void random_test(size_t n_points, bool sorted = false)
 {
 	static std::mt19937_64 random_engine(
 		std::chrono::steady_clock::now().time_since_epoch().count());
@@ -120,14 +153,26 @@ void random_test(size_t n_points)
 
 	static auto generate_random_point =
 	[] () -> Point<int64_t>  {
-		return Point<int64_t>(random_generator(random_engine),
-			random_generator(random_engine));
+		return Point<int64_t>(random_generator(random_engine)%100,
+			random_generator(random_engine)%100);
 	};
 
 	std::cout << "random test with " << std::setw(6) << n_points << " points" << std::endl;
 	std::vector< Point<int64_t> > points(n_points);
 	std::generate(points.begin(), points.end(), generate_random_point);
-
+	std::sort(points.begin(), points.end(), [](const Point<int64_t>& lhs, const Point<int64_t>& rhs) {
+      return lhs.x < rhs.x;
+   });
+	std::ofstream outfile;
+	outfile.open("polygon.txt");
+	if(n_points <= 10)
+	{
+		for(int i=0;i<n_points;i++){
+			std::cout << points[i].x <<" "<<points[i].y << std::endl;
+		 	outfile << points[i].x <<" "<<points[i].y << std::endl;
+		}
+	}
+	outfile.close();
 	test(points);
 }
 
@@ -158,12 +203,14 @@ int main()
 {
 
 	std::vector<int> sizes = { 10, 50, 100, 500, 1000, 2000, 5000 };
-	for(int n_points: sizes)
-	{
-		random_test(n_points);
-		circle_test(n_points);
-		circle_test(n_points, true);
-	}
+	// for(int n_points: sizes)
+	// {
+	// 	random_test(n_points);
+	// 	circle_test(n_points);
+	// 	circle_test(n_points, true);
+	// }
+	int size = 10;
+	random_test(size,false);
 	std::cout << "\ntests passed" << std::endl;
 
 	return 0;
