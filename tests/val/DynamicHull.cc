@@ -2,6 +2,7 @@
 #include "ConvexHull.hh"
 #include "DynamicHull.hh"
 #include "Tangent.hh"
+#include "TestGenerator.hh"
 
 #include <chrono>
 #include <cmath>
@@ -57,7 +58,7 @@ void test_extremes(
 }
 
 template<typename T>
-void test( std::vector< Point<T> > const& points )
+void test_val( std::vector< Point<T> > const& points )
 {
 	assert( points.size() > 2 );
 
@@ -110,59 +111,43 @@ void test( std::vector< Point<T> > const& points )
 
 }
 
-void random_test(size_t n_points)
-{
-	static std::mt19937_64 random_engine(
-		std::chrono::steady_clock::now().time_since_epoch().count());
-	static std::uniform_int_distribution< int64_t > random_generator(0, 1000000);
-
-	static auto generate_random_point =
-	[] () -> Point<int64_t>  {
-		return Point<int64_t>(random_generator(random_engine),
-			random_generator(random_engine));
-	};
-
-	std::cout << "random test with " << std::setw(6) << n_points << " points" << std::endl;
-	std::vector< Point<int64_t> > points(n_points);
-	std::generate(points.begin(), points.end(), generate_random_point);
-
-	test(points);
-}
-
-void circle_test(int n_points, bool spiral = false)
-{
-	double omega = 2 * acos(-1) / n_points;
-
-	std::cout << (spiral ? "spiral" : "circle")
-		<< " test with " << std::setw(6) << n_points << " points" << std::endl;
-	int64_t radius = 1000000;
-	std::vector< Point<int64_t> > points(n_points);
-	for(int i = 0; i < n_points; i++) {
-		int radius_i = spiral ? radius / (i+1) : radius;
-		points[i] = Point< int64_t >(
-			radius_i * cos(i * omega),
-			radius_i * sin(i * omega)
-		);
-	}
-
-	static std::mt19937_64 random_engine(
-		std::chrono::steady_clock::now().time_since_epoch().count());
-	std::shuffle(points.begin(), points.end(), random_engine);
-
-	test(points);
-}
 
 int main()
 {
 
-	std::vector<int> sizes = { 10, 50, 100, 500, 1000, 2000, 5000 };
-	for(int n_points: sizes)
+	std::vector< size_t > sizes = {
+			10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+			50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+			100, 100, 100, 100, 100,
+			500, 500, 500, 500, 500,
+			1000, 1000, 1000,
+			2000, 2000, 2000 };
+
+	for(size_t n_points: sizes)
 	{
-		random_test(n_points);
-		circle_test(n_points);
-		circle_test(n_points, true);
+		{
+			auto random_test = random_int_test<int64_t>(n_points);
+
+			std::cout << "random test with " << std::setw(6)
+				<< n_points << " points" << std::endl;
+			test_val(random_test);
+		}
+		{
+			std::cout << "circle test with " << std::setw(6)
+				<< n_points << " points" << std::endl;
+			auto random_test = random_circle_int_test<int64_t>(
+				n_points, 2 * n_points * (int)(sqrt(n_points)), false);
+			test_val(random_test);
+		}
+		{
+			std::cout << "spiral test with " << std::setw(6)
+				<< n_points << " points" << std::endl;
+			auto random_test = random_circle_int_test<int64_t>(
+				n_points, 2 * n_points * (int)(sqrt(n_points)), true);
+			test_val(random_test);
+		}
 	}
-	std::cout << "\ntests passed" << std::endl;
+	std::cout << "\nall tests passed" << std::endl;
 
 	return 0;
 }

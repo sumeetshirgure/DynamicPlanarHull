@@ -1,29 +1,16 @@
 #include "ConvexHull.hh"
 #include "MonotoneHull.hh"
+#include "TestGenerator.hh"
 
 #include <iostream>
 #include <iomanip>
 #include <chrono>
 #include <random>
 
-void random_test(size_t n_points)
+template<typename T>
+void test_monotone(std::vector< Point<T> > const& points)
 {
-	assert( n_points > 1 );
-
-	static std::mt19937_64 random_engine(
-		std::chrono::steady_clock::now().time_since_epoch().count());
-	static std::uniform_int_distribution< int64_t > random_generator(0, 1000000);
-
-	static auto generate_random_point =
-	[] () -> Point<int64_t>  {
-		return Point<int64_t>(random_generator(random_engine),
-			random_generator(random_engine));
-	};
-
-	std::cout << "random test with " << std::setw(6) << n_points << " points" << std::endl;
-	std::vector< Point<int64_t> > points(n_points);
-	std::generate(points.begin(), points.end(), generate_random_point);
-	std::sort(points.begin(), points.end());
+	assert( points.size() > 1 );
 
 	std::vector< Point<int64_t> > polygon;
 	MonotoneHull<int64_t> monotone_hull;
@@ -43,12 +30,51 @@ void random_test(size_t n_points)
 int main()
 {
 
-	std::vector<int> sizes = { 10, 50, 100, 500, 1000, 2000, 5000 };
-	for(int n_points: sizes)
+	std::vector< size_t > sizes = {
+			10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+			50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+			100, 100, 100, 100, 100,
+			500, 500, 500, 500, 500,
+			1000, 1000, 1000,
+			2000, 2000, 2000 };
+
+	for(size_t n_points: sizes)
 	{
-		random_test(n_points);
+		{
+			auto random_test = random_int_test<int64_t>(n_points);
+
+			std::cout << "random test with " << std::setw(6)
+				<< n_points << " points" << std::endl;
+			std::sort(random_test.begin(), random_test.end());
+			random_test.erase(
+				std::unique(random_test.begin(), random_test.end()),
+				random_test.end());
+			test_monotone(random_test);
+		}
+		{
+			std::cout << "circle test with " << std::setw(6)
+				<< n_points << " points" << std::endl;
+			auto random_test = random_circle_int_test<int64_t>(
+				n_points, 2 * n_points * (int)(sqrt(n_points)), false);
+			std::sort(random_test.begin(), random_test.end());
+			random_test.erase(
+				std::unique(random_test.begin(), random_test.end()),
+				random_test.end());
+			test_monotone(random_test);
+		}
+		{
+			std::cout << "spiral test with " << std::setw(6)
+				<< n_points << " points" << std::endl;
+			auto random_test = random_circle_int_test<int64_t>(
+				n_points, 2 * n_points * (int)(sqrt(n_points)), true);
+			std::sort(random_test.begin(), random_test.end());
+			random_test.erase(
+				std::unique(random_test.begin(), random_test.end()),
+				random_test.end());
+			test_monotone(random_test);
+		}
 	}
-	std::cout << "tests passed" << std::endl;
+	std::cout << "\nall tests passed" << std::endl;
 
 	return 0;
 }

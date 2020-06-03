@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 
 	std::vector< Point<int64_t> > points =
 		random_circle_int_test<int64_t>(
-			n_points, 2 * n_points * (int)(sqrt(n_points)), false);
+			n_points, n_points * (int)(sqrt(n_points)), false);
 
 	test_perf(points);
 
