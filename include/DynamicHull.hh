@@ -37,6 +37,9 @@ private :
 
 public :
 
+	using size_t = int32_t;
+	using priority_t = int32_t;
+
 	DynamicHull(Point<Field> const&, Point<Field> const&);
 	~DynamicHull();
 
@@ -51,19 +54,23 @@ public :
 	template<typename Callback> void traverse_lower_hull(Callback const&);
 	template<typename Callback> void traverse_upper_hull(Callback const&);
 
+	size_t get_lower_hull_size() const;
+	size_t get_upper_hull_size() const;
+
 };
 
 template<typename Field>
 struct DynamicHull<Field>::TreapNode
 {
-	int32_t priority;
+	DynamicHull<Field>::priority_t priority;
+	DynamicHull<Field>::size_t size;
 
 	TreapNode *left, *right;
 
 	Point< Field > u, v;
 
 	TreapNode(Point<Field> const &u, Point<Field> const &v):
-		priority(rng(engine)),
+		priority(rng(engine)), size(1),
 		left(nullptr), right(nullptr),
 		u(u), v(v)
 	{ }
@@ -131,6 +138,9 @@ void DynamicHull<Field>::cut(const Predicate &predicate, Point<Field> &split,
 			treap_root->right, treap_root->right, right_root);
 		left_root = treap_root;
 	}
+	treap_root->size = 1
+		+ (treap_root->left  == nullptr ? 0 : treap_root->left ->size)
+		+ (treap_root->right == nullptr ? 0 : treap_root->right->size);
 }
 
 template<typename Field>
@@ -152,6 +162,9 @@ void DynamicHull<Field>::join(TreapNode *&root,
 		join(left_root->right, left_root->right, right_root);
 		root = left_root;
 	}
+	root->size = 1
+		+ (root->left  == nullptr ? 0 : root->left ->size)
+		+ (root->right == nullptr ? 0 : root->right->size);
 }
 
 template<typename Field>
@@ -168,6 +181,20 @@ void DynamicHull<Field>::traverse_upper_hull(Callback const&callback)
 {
 	traverse_chain(upper_hull, callback);
 	callback(last);
+}
+
+template<typename Field>
+typename DynamicHull<Field>::size_t
+DynamicHull<Field>::get_lower_hull_size() const
+{
+	return 1 + lower_hull->size;
+}
+
+template<typename Field>
+typename DynamicHull<Field>::size_t
+DynamicHull<Field>::get_upper_hull_size() const
+{
+	return 1 + upper_hull->size;
 }
 
 template<typename Field>

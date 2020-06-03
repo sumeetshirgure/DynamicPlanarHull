@@ -94,20 +94,18 @@ void test( std::vector< Point<T> > const& points )
 		auto upper_chain_iterator = upper_chain.begin();
 		auto check_lower_chain =
 		[&lower_chain_iterator](Point< int64_t > const&point)
-		{
-			assert(point == *lower_chain_iterator++);
-		};
+		{ assert(point == *lower_chain_iterator++); };
 		auto check_upper_chain =
 		[&upper_chain_iterator](Point< int64_t > const&point)
-		{ 
-			assert(point == *upper_chain_iterator++);
-		};
+		{ assert(point == *upper_chain_iterator++); };
 
 		dynamic_hull.traverse_lower_hull(check_lower_chain);
 		assert(lower_chain_iterator == lower_chain.end());
 		dynamic_hull.traverse_upper_hull(check_upper_chain);
 		assert(upper_chain_iterator == upper_chain.end());
 
+		assert(dynamic_hull.get_lower_hull_size() == lower_chain.size());
+		assert(dynamic_hull.get_upper_hull_size() == upper_chain.size());
 	};
 
 }
