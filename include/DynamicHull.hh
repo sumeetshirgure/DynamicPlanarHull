@@ -3,6 +3,8 @@
 #include <cassert>
 #include <utility>
 #include <random>
+#include <list>
+#include <queue>
 
 #include "Point.hh"
 
@@ -22,7 +24,8 @@ private :
 
 	static void join(TreapNode *&, TreapNode *, TreapNode *);
 
-	static void erase(TreapNode *&);
+	std::queue< TreapNode*, std::list<TreapNode*> > dump;
+	void erase(TreapNode *&);
 
 	TreapNode *lower_hull = nullptr, *upper_hull = nullptr;
 	Point<Field> first, last;
@@ -99,8 +102,17 @@ DynamicHull<Field>::DynamicHull(Point<Field> const&p, Point<Field> const&q)
 template<typename Field>
 DynamicHull<Field>::~DynamicHull()
 {
-	erase(lower_hull);
-	erase(upper_hull);
+	dump.push(lower_hull);
+	dump.push(upper_hull);
+	while( not dump.empty() ) {
+		auto node = dump.front();
+		if( node->left != nullptr )
+			dump.push(node->left);
+		if( node->right != nullptr )
+			dump.push(node->right);
+		dump.pop();
+		delete node;
+	}
 }
 
 template<typename Field>
@@ -108,9 +120,7 @@ void DynamicHull<Field>::erase(TreapNode *&node)
 {
 	if( node == nullptr )
 		return;
-	erase(node->left);
-	erase(node->right);
-	delete node;
+	dump.push(node);
 	node = nullptr;
 }
 
