@@ -9,7 +9,7 @@
 #include "Point.hh"
 
 template<typename Field>
-class DynamicHull
+class OnlineHull
 {
 
 private :
@@ -43,8 +43,8 @@ public :
 	using size_t = int32_t;
 	using priority_t = int32_t;
 
-	DynamicHull(Point<Field> const&, Point<Field> const&);
-	~DynamicHull();
+	OnlineHull(Point<Field> const&, Point<Field> const&);
+	~OnlineHull();
 
 	bool add_point(Point<Field> const&);
 
@@ -63,10 +63,10 @@ public :
 };
 
 template<typename Field>
-struct DynamicHull<Field>::TreapNode
+struct OnlineHull<Field>::TreapNode
 {
-	DynamicHull<Field>::priority_t priority;
-	DynamicHull<Field>::size_t size;
+	OnlineHull<Field>::priority_t priority;
+	OnlineHull<Field>::size_t size;
 
 	TreapNode *left, *right;
 
@@ -80,13 +80,13 @@ struct DynamicHull<Field>::TreapNode
 };
 
 template<typename Field>
-std::default_random_engine DynamicHull<Field>::engine;
+std::default_random_engine OnlineHull<Field>::engine;
 
 template<typename Field>
-std::uniform_int_distribution< int32_t > DynamicHull<Field>::rng;
+std::uniform_int_distribution< int32_t > OnlineHull<Field>::rng;
 
 template<typename Field>
-DynamicHull<Field>::DynamicHull(Point<Field> const&p, Point<Field> const&q)
+OnlineHull<Field>::OnlineHull(Point<Field> const&p, Point<Field> const&q)
 {
 	assert( not (p == q) );
 
@@ -100,7 +100,7 @@ DynamicHull<Field>::DynamicHull(Point<Field> const&p, Point<Field> const&q)
 }
 
 template<typename Field>
-DynamicHull<Field>::~DynamicHull()
+OnlineHull<Field>::~OnlineHull()
 {
 	dump.push(lower_hull);
 	dump.push(upper_hull);
@@ -116,17 +116,16 @@ DynamicHull<Field>::~DynamicHull()
 }
 
 template<typename Field>
-void DynamicHull<Field>::erase(TreapNode *&node)
+void OnlineHull<Field>::erase(TreapNode *&node)
 {
-	if( node == nullptr )
-		return;
-	dump.push(node);
+	if( node != nullptr )
+		dump.push(node);
 	node = nullptr;
 }
 
 template<typename Field>
 template<typename Predicate>
-void DynamicHull<Field>::cut(const Predicate &predicate, Point<Field> &split,
+void OnlineHull<Field>::cut(const Predicate &predicate, Point<Field> &split,
 	TreapNode *treap_root, TreapNode *&left_root, TreapNode *&right_root)
 {
 	if( treap_root == nullptr )
@@ -154,7 +153,7 @@ void DynamicHull<Field>::cut(const Predicate &predicate, Point<Field> &split,
 }
 
 template<typename Field>
-void DynamicHull<Field>::join(TreapNode *&root,
+void OnlineHull<Field>::join(TreapNode *&root,
 	TreapNode *left_root, TreapNode *right_root)
 {
 	if( left_root == nullptr or right_root == nullptr )
@@ -179,7 +178,7 @@ void DynamicHull<Field>::join(TreapNode *&root,
 
 template<typename Field>
 template<typename Callback>
-void DynamicHull<Field>::traverse_lower_hull(Callback const&callback)
+void OnlineHull<Field>::traverse_lower_hull(Callback const&callback)
 {
 	traverse_chain(lower_hull, callback);
 	callback(last);
@@ -187,29 +186,29 @@ void DynamicHull<Field>::traverse_lower_hull(Callback const&callback)
 
 template<typename Field>
 template<typename Callback>
-void DynamicHull<Field>::traverse_upper_hull(Callback const&callback)
+void OnlineHull<Field>::traverse_upper_hull(Callback const&callback)
 {
 	traverse_chain(upper_hull, callback);
 	callback(last);
 }
 
 template<typename Field>
-typename DynamicHull<Field>::size_t
-DynamicHull<Field>::get_lower_hull_size() const
+typename OnlineHull<Field>::size_t
+OnlineHull<Field>::get_lower_hull_size() const
 {
 	return 1 + lower_hull->size;
 }
 
 template<typename Field>
-typename DynamicHull<Field>::size_t
-DynamicHull<Field>::get_upper_hull_size() const
+typename OnlineHull<Field>::size_t
+OnlineHull<Field>::get_upper_hull_size() const
 {
 	return 1 + upper_hull->size;
 }
 
 template<typename Field>
 template<typename Callback>
-void DynamicHull<Field>::traverse_chain(TreapNode const*node, Callback const&callback)
+void OnlineHull<Field>::traverse_chain(TreapNode const*node, Callback const&callback)
 {
 	if( node == nullptr )
 		return;
@@ -219,7 +218,7 @@ void DynamicHull<Field>::traverse_chain(TreapNode const*node, Callback const&cal
 }
 
 template<typename Field>
-bool DynamicHull<Field>::add_point(Point<Field> const& point)
+bool OnlineHull<Field>::add_point(Point<Field> const& point)
 {
 	Point<Field> left_tangent, right_tangent;
 	bool lower_hull_updated =
@@ -234,7 +233,7 @@ bool DynamicHull<Field>::add_point(Point<Field> const& point)
 
 template<typename Field>
 std::pair< bool, std::pair< Point<Field>, Point<Field> > >
-DynamicHull<Field>::get_tangents(Point<Field> const& point)
+OnlineHull<Field>::get_tangents(Point<Field> const& point)
 {
 	bool outside = false;
 	std::pair< Point<Field>, Point<Field> > tangents;
@@ -261,7 +260,7 @@ DynamicHull<Field>::get_tangents(Point<Field> const& point)
 
 template<typename Field>
 std::pair< Point<Field>, Point<Field> >
-DynamicHull<Field>::get_extremal_points(Point<Field> const&direction)
+OnlineHull<Field>::get_extremal_points(Point<Field> const&direction)
 {
 
 	std::pair< Point<Field>, Point<Field> > points{first, last};
@@ -295,7 +294,7 @@ DynamicHull<Field>::get_extremal_points(Point<Field> const&direction)
 }
 
 template<typename Field>
-bool DynamicHull<Field>::update_lower_hull(Point<Field> const& point,
+bool OnlineHull<Field>::update_lower_hull(Point<Field> const& point,
 	Point<Field> &left_tangent, Point<Field> &right_tangent, bool update)
 {
 	auto left_cond = [this, &point](TreapNode const&node) -> bool
@@ -401,7 +400,7 @@ bool DynamicHull<Field>::update_lower_hull(Point<Field> const& point,
 }
 
 template<typename Field>
-bool DynamicHull<Field>::update_upper_hull(Point<Field> const& point,
+bool OnlineHull<Field>::update_upper_hull(Point<Field> const& point,
 	Point<Field> &left_tangent, Point<Field> &right_tangent, bool update)
 {
 	auto left_cond = [this, &point](TreapNode const&node) -> bool

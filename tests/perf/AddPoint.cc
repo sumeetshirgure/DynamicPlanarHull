@@ -1,6 +1,6 @@
 #include "Point.hh"
 #include "ConvexHull.hh"
-#include "DynamicHull.hh"
+#include "OnlineHull.hh"
 #include "Tangent.hh"
 
 #include "TestGenerator.hh"
@@ -20,7 +20,7 @@ void test_perf( std::vector< Point<Field> > const& points )
 
 	auto const&first_point = *iter++;
 	auto const&second_point = *iter++;
-	DynamicHull< Field > dynamic_hull(first_point, second_point);
+	OnlineHull< Field > dynamic_hull(first_point, second_point);
 
 	while( iter != points.end() )
 	{

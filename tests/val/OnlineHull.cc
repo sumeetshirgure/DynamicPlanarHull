@@ -1,6 +1,6 @@
 #include "Point.hh"
 #include "ConvexHull.hh"
-#include "DynamicHull.hh"
+#include "OnlineHull.hh"
 #include "Tangent.hh"
 #include "TestGenerator.hh"
 
@@ -15,7 +15,7 @@
 template<typename T>
 void test_extremes(
 	Point<T> const& point,
-	DynamicHull<T> & dynamic_hull, // TODO : const&
+	OnlineHull<T> & dynamic_hull,
 	std::vector< Point<T> > const& lower_chain,
 	std::vector< Point<T> > const& upper_chain )
 {
@@ -69,7 +69,7 @@ void test_val( std::vector< Point<T> > const& points )
 	polygon[1] = *iter++;
 	std::sort(polygon.begin(), polygon.end());
 
-	DynamicHull< int64_t > dynamic_hull(polygon[0], polygon[1]);
+	OnlineHull< int64_t > dynamic_hull(polygon[0], polygon[1]);
 
 	auto [lower_chain, upper_chain] = convex_hull(polygon, true);
 
