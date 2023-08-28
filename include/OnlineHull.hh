@@ -32,6 +32,8 @@ private :
 
 	template<typename Callback>
 	void traverse_chain(TreapNode const*, Callback const&);
+	template<typename Callback>
+	void traverse_chain_in_reverse(TreapNode const*, Callback const&);
 
 	bool update_lower_hull
 	(Point<Field> const&, Point<Field>&, Point<Field>&, bool);
@@ -56,9 +58,11 @@ public :
 
 	template<typename Callback> void traverse_lower_hull(Callback const&);
 	template<typename Callback> void traverse_upper_hull(Callback const&);
+	template<typename Callback> void traverse_hull(Callback const&);
 
 	size_t get_lower_hull_size() const;
 	size_t get_upper_hull_size() const;
+	size_t get_hull_size() const;
 
 };
 
@@ -193,6 +197,14 @@ void OnlineHull<Field>::traverse_upper_hull(Callback const&callback)
 }
 
 template<typename Field>
+template<typename Callback>
+void OnlineHull<Field>::traverse_hull(Callback const&callback)
+{
+	traverse_chain(lower_hull, callback);
+	traverse_chain_in_reverse(upper_hull, callback);
+}
+
+template<typename Field>
 typename OnlineHull<Field>::size_t
 OnlineHull<Field>::get_lower_hull_size() const
 {
@@ -207,6 +219,13 @@ OnlineHull<Field>::get_upper_hull_size() const
 }
 
 template<typename Field>
+typename OnlineHull<Field>::size_t
+OnlineHull<Field>::get_hull_size() const
+{
+	return lower_hull->size + upper_hull->size;
+}
+
+template<typename Field>
 template<typename Callback>
 void OnlineHull<Field>::traverse_chain(TreapNode const*node, Callback const&callback)
 {
@@ -215,6 +234,17 @@ void OnlineHull<Field>::traverse_chain(TreapNode const*node, Callback const&call
 	traverse_chain(node->left, callback);
 	callback(node->u);
 	traverse_chain(node->right, callback);
+}
+
+template<typename Field>
+template<typename Callback>
+void OnlineHull<Field>::traverse_chain_in_reverse(TreapNode const*node, Callback const&callback)
+{
+	if( node == nullptr )
+		return;
+	traverse_chain(node->right, callback);
+	callback(node->v);
+	traverse_chain(node->left, callback);
 }
 
 template<typename Field>
