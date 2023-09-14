@@ -149,13 +149,28 @@ bool remove(TotalOrder const& point, TreapNode<TotalOrder> *&tree,
 template< typename TotalOrder >
 void cut(TotalOrder const& point, TreapNode<TotalOrder> *tree,
     TreapNode<TotalOrder> *&left, TreapNode<TotalOrder> *&right) {
-  // 
-  if( tree->is_leaf() ) {
-    if( tree->lo() < point ) left = nullptr, right = tree;
-    else left = tree, right = nullptr;
+  if(tree->is_leaf()) {
+    if( tree->lo() < point ) left = tree, right = nullptr;
+    else left = nullptr, right = tree;
+    return;
   }
+  auto _tree = static_cast<TreapBranch<TotalOrder>*>(tree);
+  _tree->push();
+  auto &left_child = _tree->left, &right_child = _tree->right;
 
-
+  // _tree->lo(), left_child->hi(), right_child->lo(), _tree->hi();
+  if( not (left_child->hi() < point) ) {
+    cut(point, left_child, left, left_child);
+    right = _tree;
+    _tree->pull();
+  } else if( right_child->lo() < point ) {
+    cut(point, right_child, right_child, right);
+    left = _tree;
+    _tree->pull();
+  } else { // left_child->hi() < point <= right_child->lo()
+    left = left_child, right = right_child;
+    delete _tree; _tree = nullptr;
+  }
 }
 
 
@@ -198,7 +213,7 @@ int main() {
   TreapNode<int> * root = nullptr;
   vector< TreapNode<int> * > roots(11, nullptr);
   for(int i=1, j = 1; i<=10; i++) {
-    for(; j<=i*10; j++) {
+    for(; j<=i*1; j++) {
       join(roots[i], roots[i], &leaves[j]);
     }
   }
@@ -210,15 +225,11 @@ int main() {
   std::cout << "H" << get_height(root) << std::endl;
 
   int x; cin >> x;
-  cout << ">> " << remove(x, root) << endl;
-  print_treap(root), cout << endl;
-  std::cout << get_height(root) << std::endl;
-  cin >> x;
-  cout << ">> " << remove(x, root) << endl;
-  print_treap(root), cout << endl;
-  std::cout << get_height(root) << std::endl;
+  TreapNode<int> *left, *right;
+  cut(x, root, left, right);
 
-
+  print_treap(left), cout << endl;
+  print_treap(right), cout << endl;
 
   return 0;
 }
