@@ -13,6 +13,7 @@ class TreapNode {
     inline virtual priority_t priority() const = 0;
     inline virtual TotalOrder lo() const = 0;
     inline virtual TotalOrder hi() const = 0;
+    // inline virtual ~TreapNode();
 };
 
 template<typename TotalOrder>
@@ -23,8 +24,14 @@ class TreapLeaf : public TreapNode<TotalOrder> {
   inline TreapNode<TotalOrder>::priority_t priority() const { return -1; }
   inline TotalOrder lo() const { return point; }
   inline TotalOrder hi() const { return point; }
-  TreapLeaf(const TotalOrder& _point) : point(_point) { }
   void set_point(TotalOrder const& _point) { point = _point; }
+
+  TreapLeaf(const TotalOrder& _point) : point(_point) { 
+    std::cerr << "Created point " << point << std::endl;
+  }
+  ~TreapLeaf() {
+    std::cerr << "Deleted point " << point << std::endl;
+  }
 };
 
 
@@ -41,23 +48,33 @@ class TreapBranch : public TreapNode<TotalOrder> {
     assert(left != nullptr and right != nullptr);
     _lo = left->lo();
     _hi = right->hi();
+    std::cerr << "Pulled branch " << priority() << " " << _lo << " " << _hi << std::endl;
   }
   void push() {
     assert(left != nullptr and right != nullptr);
-
+    std::cerr << "Pushed branch " << priority() << " " << _lo << " " << _hi << std::endl;
   }
   inline TotalOrder lo() const { return _lo; }
+  TreapBranch() {
+    std::cerr << "Created branch " << priority() << std::endl;
+  }
+  ~TreapBranch() {
+    std::cerr << "Deleted branch " << priority() << " " << _lo << " " << _hi << std::endl;
+  }
 };
 
 template< typename TotalOrder >
 void join(TreapNode<TotalOrder>* & root,
     TreapNode<TotalOrder> *left, TreapNode<TotalOrder> *right) {
+
   if( left == nullptr or right == nullptr )
     return void(root = (left == nullptr ? right : left));
+
   if( left->is_leaf() and right->is_leaf() ) {
-    root = new TreapBranch<TotalOrder>();
-    auto _root = static_cast<TreapBranch<TotalOrder>*>(root);
+    auto* _root = static_cast<TreapBranch<TotalOrder>*>(root);
+    _root = new TreapBranch<TotalOrder>();
     _root->left = left, _root->right = right;
+    root = _root;
     _root->pull();
     return;
   }
@@ -75,9 +92,11 @@ void join(TreapNode<TotalOrder>* & root,
       _left->right = _right;
       _right->left = temp;
       root = _left;
+      _right->pull();
       _left->pull();
+    } else {
+      _right->pull();
     }
-    _right->pull();
   } else {
     auto _left = static_cast<TreapBranch<TotalOrder>*>(left);
     _left->push(); 
@@ -90,9 +109,11 @@ void join(TreapNode<TotalOrder>* & root,
       _right->left = _left;
       _left->right = temp;
       root = _right;
+      _left->pull();
       _right->pull();
+    } else {
+      _left->pull();
     }
-    _left->pull();
   }
 }
 
@@ -105,7 +126,7 @@ bool remove(TotalOrder const& point, TreapNode<TotalOrder> *&tree,
   if( tree->is_leaf() ) {
     auto leaf = static_cast<TreapLeaf<TotalOrder>*>(tree);
     if( (leaf->hi() < point) or (point < leaf->lo()) ) return false;
-    delete tree, tree = nullptr;
+    delete leaf, tree = nullptr;
     return true;
   }
   auto _tree = static_cast<TreapBranch<TotalOrder>*>(tree);
@@ -129,7 +150,7 @@ bool remove(TotalOrder const& point, TreapNode<TotalOrder> *&tree,
 
   if( left_child == nullptr or right_child == nullptr ) {
     auto child = (left_child == nullptr ? right_child : left_child);
-    delete tree;
+    delete _tree;
     if( parent == nullptr ) {
       tree = child;
     } else {
@@ -178,7 +199,7 @@ template< typename TotalOrder >
 void insert(TotalOrder const& point, TreapNode<TotalOrder> *&tree) {
   TreapNode<TotalOrder> *left, *right;
   cut(point, tree, left, right);
-  auto *leaf = new TreapLeaf<TotalOrder>(point);
+  TreapLeaf<TotalOrder> *leaf = new TreapLeaf<TotalOrder>(point);
   join(right, leaf, right);
   join(tree, left, right);
 }
@@ -218,19 +239,20 @@ int main() {
 
 
   TreapNode<int> * root = nullptr;
+
+  // for(int i=1; i<=10; i++) insert(i*7+5, root);
   print_treap(root), cout << endl;
   std::cout << "H" << get_height(root) << std::endl;
 
-  for(int i=1; i<=3; i++)
-    insert(i*7+5, root);
-  print_treap(root), cout << endl;
-  std::cout << "H" << get_height(root) << std::endl;
-
-  int x;
-  while(cin >> x) {
-    cout << remove(x, root) << endl;
+  int ty, x;
+  while(cin >> ty >> x) {
+    if( ty == 0 ) {
+      insert(x, root);
+    } else {
+      cout << remove(x, root) << endl;
+    }
     print_treap(root), cout << endl;
-    std::cout << "H" << get_height(root) << std::endl;
+    std::cout << "Height " << get_height(root) << std::endl;
   }
 
 
