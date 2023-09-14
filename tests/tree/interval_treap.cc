@@ -149,6 +149,7 @@ bool remove(TotalOrder const& point, TreapNode<TotalOrder> *&tree,
 template< typename TotalOrder >
 void cut(TotalOrder const& point, TreapNode<TotalOrder> *tree,
     TreapNode<TotalOrder> *&left, TreapNode<TotalOrder> *&right) {
+  if( tree == nullptr ) { left = right = nullptr; return; }
   if(tree->is_leaf()) {
     if( tree->lo() < point ) left = tree, right = nullptr;
     else left = nullptr, right = tree;
@@ -171,6 +172,16 @@ void cut(TotalOrder const& point, TreapNode<TotalOrder> *tree,
     left = left_child, right = right_child;
     delete _tree; _tree = nullptr;
   }
+}
+
+
+template< typename TotalOrder >
+void insert(TotalOrder const& point, TreapNode<TotalOrder> *&tree) {
+  TreapNode<TotalOrder> *left, *right;
+  cut(point, tree, left, right);
+  auto *leaf = new TreapLeaf<TotalOrder>(point);
+  join(right, leaf, right);
+  join(tree, left, right);
 }
 
 
@@ -197,6 +208,7 @@ void print_treap(TreapNode<TotalOrder> const* root) {
 
 template< typename TotalOrder >
 int get_height(TreapNode<TotalOrder> const* root) {
+  if( root == nullptr ) return 0;
   if( root->is_leaf() ) return 1;
   auto const* _root = static_cast<TreapBranch<TotalOrder>const*>(root);
   return 1+std::max(get_height(_root->left), get_height(_root->right));
@@ -205,31 +217,21 @@ int get_height(TreapNode<TotalOrder> const* root) {
 int main() {
   using namespace std;
 
-  vector< TreapLeaf<int> > leaves(1001, 0);
-  for(int i=0; i<=100; i++) {
-    leaves[i].set_point( i*5 + 2 );
-  }
 
   TreapNode<int> * root = nullptr;
-  vector< TreapNode<int> * > roots(11, nullptr);
-  for(int i=1, j = 1; i<=10; i++) {
-    for(; j<=i*1; j++) {
-      join(roots[i], roots[i], &leaves[j]);
-    }
-  }
+  print_treap(root), cout << endl;
+  std::cout << "H" << get_height(root) << std::endl;
 
-  for(int i=1; i<=10; i++) {
-    join(root, root, roots[i]);
-  }
+  for(int i=1; i<=100; i++)
+    insert(i*7+5, root);
   print_treap(root), cout << endl;
   std::cout << "H" << get_height(root) << std::endl;
 
   int x; cin >> x;
-  TreapNode<int> *left, *right;
-  cut(x, root, left, right);
+  cout << remove(x, root) << endl;
+  print_treap(root), cout << endl;
+  std::cout << "H" << get_height(root) << std::endl;
 
-  print_treap(left), cout << endl;
-  print_treap(right), cout << endl;
 
   return 0;
 }
