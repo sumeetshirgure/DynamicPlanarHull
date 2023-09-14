@@ -101,12 +101,11 @@ void join(TreapNode<TotalOrder>* & root,
 template< typename TotalOrder >
 bool remove(TotalOrder const& point, TreapNode<TotalOrder> *&tree, 
     TreapBranch<TotalOrder> *parent = nullptr) {
-
+  if( tree == nullptr ) return false;
   if( tree->is_leaf() ) {
     auto leaf = static_cast<TreapLeaf<TotalOrder>*>(tree);
-    if( (leaf->hi() < point) or (point < leaf->lo()) )
-      return false;
-    tree = nullptr;
+    if( (leaf->hi() < point) or (point < leaf->lo()) ) return false;
+    delete tree, tree = nullptr;
     return true;
   }
   auto _tree = static_cast<TreapBranch<TotalOrder>*>(tree);
@@ -222,15 +221,17 @@ int main() {
   print_treap(root), cout << endl;
   std::cout << "H" << get_height(root) << std::endl;
 
-  for(int i=1; i<=100; i++)
+  for(int i=1; i<=3; i++)
     insert(i*7+5, root);
   print_treap(root), cout << endl;
   std::cout << "H" << get_height(root) << std::endl;
 
-  int x; cin >> x;
-  cout << remove(x, root) << endl;
-  print_treap(root), cout << endl;
-  std::cout << "H" << get_height(root) << std::endl;
+  int x;
+  while(cin >> x) {
+    cout << remove(x, root) << endl;
+    print_treap(root), cout << endl;
+    std::cout << "H" << get_height(root) << std::endl;
+  }
 
 
   return 0;
