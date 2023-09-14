@@ -17,13 +17,14 @@ class TreapNode {
 
 template<typename TotalOrder>
 class TreapLeaf : public TreapNode<TotalOrder> {
-  public:
   TotalOrder point;
+  public:
   inline bool is_leaf() const { return true; }
   inline TreapNode<TotalOrder>::priority_t priority() const { return -1; }
   inline TotalOrder lo() const { return point; }
   inline TotalOrder hi() const { return point; }
-  // TreapLeaf(const TotalOrder& _point) : point(_point) { }
+  TreapLeaf(const TotalOrder& _point) : point(_point) { }
+  void set_point(TotalOrder const& _point) { point = _point; }
 };
 
 
@@ -42,6 +43,7 @@ class TreapBranch : public TreapNode<TotalOrder> {
     _hi = right->hi();
   }
   void push() {
+    assert(left != nullptr and right != nullptr);
 
   }
   inline TotalOrder lo() const { return _lo; }
@@ -145,11 +147,25 @@ bool remove(TotalOrder const& point, TreapNode<TotalOrder> *&tree,
 
 
 template< typename TotalOrder >
+void cut(TotalOrder const& point, TreapNode<TotalOrder> *tree,
+    TreapNode<TotalOrder> *&left, TreapNode<TotalOrder> *&right) {
+  // 
+  if( tree->is_leaf() ) {
+    if( tree->lo() < point ) left = nullptr, right = tree;
+    else left = tree, right = nullptr;
+  }
+
+
+}
+
+
+
+template< typename TotalOrder >
 void print_treap(TreapNode<TotalOrder> const* root) {
   if( root == nullptr ) return;
   // std::cerr << ">> " << root->lo() << " " << root->hi() << std::endl;
   if( root->is_leaf() ) {
-    std::cout << (static_cast<TreapLeaf<TotalOrder>const*>(root))->point << ' ';
+    std::cout << (static_cast<TreapLeaf<TotalOrder>const*>(root))->lo() << ' ';
     return;
   }
   auto const* _root = static_cast<TreapBranch<TotalOrder>const*>(root);
@@ -174,16 +190,16 @@ int get_height(TreapNode<TotalOrder> const* root) {
 int main() {
   using namespace std;
 
-  TreapLeaf<int> leaves[1001];
+  vector< TreapLeaf<int> > leaves(1001, 0);
   for(int i=0; i<=100; i++) {
-    leaves[i].point = i;
+    leaves[i].set_point( i*5 + 2 );
   }
 
   TreapNode<int> * root = nullptr;
   vector< TreapNode<int> * > roots(11, nullptr);
   for(int i=1, j = 1; i<=10; i++) {
-    for(; j<=i*1; j++) {
-      join(roots[i], roots[i], leaves+j);
+    for(; j<=i*10; j++) {
+      join(roots[i], roots[i], &leaves[j]);
     }
   }
 
@@ -197,6 +213,12 @@ int main() {
   cout << ">> " << remove(x, root) << endl;
   print_treap(root), cout << endl;
   std::cout << get_height(root) << std::endl;
+  cin >> x;
+  cout << ">> " << remove(x, root) << endl;
+  print_treap(root), cout << endl;
+  std::cout << get_height(root) << std::endl;
+
+
 
   return 0;
 }
