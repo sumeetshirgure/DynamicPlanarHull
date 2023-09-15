@@ -156,7 +156,6 @@ bool remove(TotalOrder const& point, TreapNode<TotalOrder> *&tree,
     } else {
       if( parent->left == tree ) parent->left = child;
       else parent->right = child;
-      parent->pull();
     }
   } else {
     _tree->pull();
