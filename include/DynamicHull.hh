@@ -1,33 +1,42 @@
 
+#pragma once
 
+#include <cassert>
+#include <optional>
 
 template<typename Field>
-class DynamicHull
-{
+class DynamicHull {
 
-public :
+  private:
+    static std::default_random_engine engine;
+    static std::uniform_int_distribution< int32_t > rng;
 
-	using size_t = int32_t;
+  public :
 
-	DynamicHull();
-	~DynamicHull();
+    using size_t = int32_t;
+    using priority_t = int32_t;
 
-	bool add_point(Point<Field> const&);
+    DynamicHull();
+    ~DynamicHull();
 
-	std::pair< bool, std::pair< Point<Field>, Point<Field> > >
-		get_tangents (Point<Field> const&) const;
+    bool add_point(Point<Field> const&);
+    bool remove_point(Point<Field> const&);
 
-	std::pair< Point<Field>, Point<Field> >
-		get_extremal_points(Point<Field> const&) const;
+    std::optional< std::pair< std::pair< Point<Field>, Point<Field> > > >
+      get_tangents (Point<Field> const&) const;
 
-	template<typename Callback> void traverse_lower_hull(Callback const&) const;
-	template<typename Callback> void traverse_upper_hull(Callback const&) const;
+    std::pair< Point<Field>, Point<Field> >
+      get_extremal_points(Point<Field> const&) const;
 
-	size_t get_lower_hull_size() const;
-	size_t get_upper_hull_size() const;
-	size_t get_hull_size() const;
+    template<typename Callback> void traverse_lower_hull(Callback const&) const;
+    template<typename Callback> void traverse_upper_hull(Callback const&) const;
 
-	template<typename Callback> void traverse_hull(Callback const&) const;
-	template<typename Callback> void traverse_set (Callback const&) const;
+    size_t get_lower_hull_size() const;
+    size_t get_upper_hull_size() const;
+    size_t get_hull_size() const;
 
+    template<typename Callback> void traverse_hull(Callback const&) const;
+    template<typename Callback> void traverse_set (Callback const&) const;
 };
+
+
