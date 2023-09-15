@@ -62,8 +62,8 @@ class HullTree<Element>::iterator {
 
     iterator(HullTree<Element>::TreapNode*_ptr) : ptr(_ptr) {}
 
-    reference operator*() const { return ptr->point; }
-    pointer operator->() const { return &(ptr->point); }
+    reference operator*() const { return ptr->element; }
+    pointer operator->() const { return &(ptr->element); }
 
     iterator& operator++() { ptr = ptr->next; return *this; }
     // iterator  operator++(int) { return ptr->next; }
@@ -101,18 +101,18 @@ struct HullTree<Element>::TreapNode {
   TreapNode *left = nullptr, *right = nullptr,
             *prev = nullptr, *next = nullptr;
 
-  Element point;
+  Element element;
 
-  TreapNode(Element const &_point):
-    priority(rng(engine)), point(_point) { }
+  TreapNode(Element const &_element):
+    priority(rng(engine)), element(_element) { }
 };
 
 template<typename Element>
 HullTree<Element>::HullTree() { }
 
 template<typename Element>
-HullTree<Element>::HullTree(Element const& point) { 
-  treap = new HullTree<Element>::TreapNode(point); 
+HullTree<Element>::HullTree(Element const& element) { 
+  treap = new HullTree<Element>::TreapNode(element); 
   _begin = treap;
 }
 
@@ -193,19 +193,4 @@ HullTree<Element>::iterator HullTree<Element>::binary_search(Predicate const& pr
   }
   return iterator(ret);
 }
-
-#include <iostream>
-using namespace std;
-
-template<typename Element>
-void HullTree<Element>::__print(TreapNode * node) {
-  if( node == nullptr ) return;
-  __print(node->left);
-  cerr << node->point << " ";
-  __print(node->right);
-}
-
-
-template<typename Element>
-void HullTree<Element>::print() { __print(treap); }
 

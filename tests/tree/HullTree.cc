@@ -4,25 +4,26 @@
 #include <iostream>
 using namespace std;
 
+#include "Point.hh"
+
+template<typename Field>
+struct LineSegment {
+  Point<Field> u, v;
+  LineSegment(Point<Field> const&_u) : u(_u), v(_u) { }
+  LineSegment(Point<Field> const&_u, Point<Field> const&_v) : u(_u), v(_v) { }
+};
+
 int main() {
 
-  HullTree<int> ht[3];
-
-  int n; cin >> n;
-  for(int i=1; i<=n; i++) {
-    HullTree<int>::join(ht[0], ht[0], HullTree<int>(i));
+  using hull_t = HullTree<LineSegment<int>>;
+  hull_t hull;
+  for(int i = 0; i < 5; i++) {
+    hull_t::join(hull, hull, hull_t(
+          LineSegment(Point<int>{i, i*i}, Point<int>{i+1, i*i+2*i+1})));
   }
 
-  for(auto it: ht[0]) {cerr << it << " ";} cerr << endl;
-
-  int value = 32;
-  auto dip = [&value](HullTree<int>::iterator it)
-  { return *it > value; };
-
-  auto mid = ht[0].binary_search(dip);
-  for(auto it = mid; it != ht[0].end(); ++it) {
-    cerr << *it << " ";
+  for(auto it = hull.begin(); it!=hull.end(); ++it) {
+    cerr << "[" << to_string(it->u) << " -- " << to_string(it->v) << "]" << endl;
   }
-  cerr << endl;
 
 }
