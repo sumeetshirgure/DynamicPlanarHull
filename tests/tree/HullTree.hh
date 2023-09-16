@@ -16,6 +16,7 @@ public:
   using priority_t = int32_t;
 
   class iterator;
+  class reverse_iterator;
 
   template<typename Predicate>
   static void cut(const Predicate&, HullTree, HullTree&, HullTree&);
@@ -30,6 +31,9 @@ public:
 
   inline iterator const begin() const;
   inline iterator const end() const;
+
+  inline reverse_iterator const rbegin() const;
+  inline reverse_iterator const rend()  const;
 
   void __print(TreapNode*);
   void print();
@@ -47,6 +51,7 @@ private:
   TreapNode * treap = nullptr;
   
   iterator _begin{nullptr}, _end{nullptr};
+  reverse_iterator _rbegin{nullptr}, _rend{nullptr};
 
   void erase(TreapNode *&);
 
@@ -80,6 +85,34 @@ class HullTree<Element>::iterator {
     TreapNode * ptr;
 };
 
+template<typename Element>
+class HullTree<Element>::reverse_iterator {
+  public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = Element;
+    using pointer    = Element*;
+    using reference  = Element&;
+
+    reverse_iterator(HullTree<Element>::TreapNode*_ptr) : ptr(_ptr) {}
+
+    reference operator*() const { return ptr->element; }
+    pointer operator->() const { return &(ptr->element); }
+
+    reverse_iterator& operator++() { ptr = ptr->prev; return *this; }
+    // iterator  operator++(int) { return ptr->next; }
+    reverse_iterator& operator--() { ptr = ptr->next; return *this; }
+    // iterator  operator--(int) { return ptr->prev; }
+
+    friend bool operator== (reverse_iterator const& a, reverse_iterator const& b)
+    { return a.ptr == b.ptr; }
+    friend bool operator!= (reverse_iterator const& a, reverse_iterator const& b)
+    { return a.ptr != b.ptr; }
+
+  private:
+
+    TreapNode * ptr;
+};
+
 
 template<typename Element>
 std::default_random_engine HullTree<Element>::engine;
@@ -89,10 +122,17 @@ std::uniform_int_distribution< int32_t > HullTree<Element>::rng;
 
 
 template<typename Element>
-HullTree<Element>::iterator const HullTree<Element>::begin() const
+inline HullTree<Element>::reverse_iterator const HullTree<Element>::rbegin() const
+{ return _rbegin; }
+template<typename Element>
+inline HullTree<Element>::reverse_iterator const HullTree<Element>::rend() const
+{ return _rend; }
+
+template<typename Element>
+inline HullTree<Element>::iterator const HullTree<Element>::begin() const
 { return _begin; }
 template<typename Element>
-HullTree<Element>::iterator const HullTree<Element>::end() const
+inline HullTree<Element>::iterator const HullTree<Element>::end() const
 { return _end; }
 
 template<typename Element>
@@ -114,6 +154,7 @@ template<typename Element>
 HullTree<Element>::HullTree(Element const& element) { 
   treap = new HullTree<Element>::TreapNode(element); 
   _begin = treap;
+  _rbegin = treap;
 }
 
 template<typename Element>
@@ -179,6 +220,7 @@ void HullTree<Element>::join(HullTree &to, HullTree left, HullTree right) {
     lt->next = rt, rt->prev = lt;
   }
   to._begin = left.treap != nullptr ? left._begin : right._begin;
+  to._rbegin = right.treap != nullptr ? right._rbegin : left._rbegin;
   __join(to.treap, left.treap, right.treap);
 }
 

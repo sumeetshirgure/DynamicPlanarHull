@@ -26,4 +26,8 @@ int main() {
     cerr << "[" << to_string(it->u) << " -- " << to_string(it->v) << "]" << endl;
   }
 
+  for(auto it = hull.rbegin(); it != hull.rend(); ++it) {
+    cerr << "[" << to_string(it->u) << " -- " << to_string(it->v) << "]" << endl;
+  }
+
 }
