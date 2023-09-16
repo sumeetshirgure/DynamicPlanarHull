@@ -35,10 +35,7 @@ public:
   inline reverse_iterator const rbegin() const;
   inline reverse_iterator const rend()  const;
 
-  void __print(TreapNode*);
-  void print();
-
-private:
+protected:
   static std::default_random_engine engine;
   static std::uniform_int_distribution< int32_t > rng;
 

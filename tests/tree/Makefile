@@ -3,3 +3,8 @@ it: interval_treap.cc
 
 ht: HullTree.cc HullTree.hh
 	g++ -g -std=c++20 HullTree.cc -o ht
+
+all: ht it
+
+clean :
+	rm -f ht it
