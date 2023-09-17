@@ -11,7 +11,11 @@ struct LineSegment {
   Point<Field> u, v;
   LineSegment(Point<Field> const&_u) : u(_u), v(_u) { }
   LineSegment(Point<Field> const&_u, Point<Field> const&_v) : u(_u), v(_v) { }
+
 };
+
+template<typename T> std::string to_string(const LineSegment<T>&p)
+{ return "[" + to_string(p.u) + " -- " + to_string(p.v) + "]"; };
 
 template<typename Field>
 class MergeableLowerHull : public HullTree<LineSegment<Field>> {
@@ -32,8 +36,39 @@ class MergeableLowerHull : public HullTree<LineSegment<Field>> {
 template<typename Field>
 LineSegment<Field> find_bridge(
     MergeableLowerHull<Field> const& left, MergeableLowerHull<Field> const& right) {
-  //
-  return LineSegment<Field>{left.rbegin()->v, right.begin()->u};
+  auto lpt = left.treap, rpt = right.treap;
+  auto split_x = right.begin()->u.x;
+  LineSegment<Field> left_cur = lpt->element, right_cur = rpt->element;
+  auto ccw = [](Point<Field> const& pivot, Point<Field> const&first, Point<Field> const& second)
+  { return ((first - pivot) ^ (second - pivot)) >= 0; }; // Thank you Gibbs
+  while( left_cur.u != left_cur.v or right_cur.u != right_cur.v ) {
+    if( left_cur.u != left_cur.v and ccw(left_cur.u, right_cur.u, left_cur.v) ) {
+      lpt = lpt->left;
+      if( lpt == nullptr ) left_cur.v = left_cur.u; else left_cur = lpt->element;
+    } else if(right_cur.u != right_cur.v and ccw(left_cur.v, right_cur.v, right_cur.u) ) {
+      rpt = rpt->right;
+      if( rpt == nullptr ) right_cur.u = right_cur.v; else right_cur = rpt->element;
+    } else if( left_cur.u == left_cur.v ) {
+      rpt = rpt->left;
+      if( rpt == nullptr ) right_cur.u = right_cur.v; else right_cur = rpt->element;
+    } else if( right_cur.u == right_cur.v ) {
+      lpt = lpt->right;
+      if( lpt == nullptr ) left_cur.v = left_cur.u; else left_cur = lpt->element;
+    } else { // left.u, left.v, right.u, right.v are ccw
+      // 
+      auto dl = left_cur.v - left_cur.u, dr = right_cur.u - right_cur.v;
+      auto tlx = (split_x -left_cur.u.x), trx = (split_x - right_cur.v.x);
+      // if( left_cur.u.y + tlx * dl.y / dl.x <= right_cur.v.y + trx * dr.y / dr.x )
+      if( dl.x * dr.x * left_cur.u.y + tlx * dl.y * dr.x <= right_cur.v.y * dl.x * dr.x + trx * dr.y * dl.x ) {
+        lpt = lpt->right;
+        if( lpt == nullptr ) left_cur.v = left_cur.u; else left_cur = lpt->element;
+      } else {
+        rpt = rpt->left;
+        if( rpt == nullptr ) right_cur.u = right_cur.v; else right_cur = rpt->element;
+      }
+    }
+  }
+  return LineSegment(left_cur.u, right_cur.u);
 }
 
 template<typename Field>
