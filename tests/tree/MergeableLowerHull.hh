@@ -6,13 +6,13 @@
 template<typename Field>
 class MergeableLowerHull : public HullTree<LineSegment<Field>> {
   friend LineSegment<Field>
-    find_bridge<>(MergeableLowerHull const& left, MergeableLowerHull const& right);
+    find_lower_bridge<>(MergeableLowerHull const& left, MergeableLowerHull const& right);
 
-  friend LineSegment<Field> merge<>( MergeableLowerHull &merged,
-        MergeableLowerHull left, MergeableLowerHull right,
-        MergeableLowerHull &left_residual, MergeableLowerHull &right_residual);
+  friend LineSegment<Field> merge_lower_hulls<>( MergeableLowerHull &merged,
+      MergeableLowerHull left, MergeableLowerHull right,
+      MergeableLowerHull &left_residual, MergeableLowerHull &right_residual);
 
-  friend void split<>(LineSegment<Field> bridge, MergeableLowerHull merged,
+  friend void split_lower_hulls<>(LineSegment<Field> bridge, MergeableLowerHull merged,
       MergeableLowerHull &left, MergeableLowerHull &right,
       MergeableLowerHull left_residual, MergeableLowerHull right_residual);
 };
@@ -20,7 +20,7 @@ class MergeableLowerHull : public HullTree<LineSegment<Field>> {
 
 
 template<typename Field>
-LineSegment<Field> find_bridge(
+LineSegment<Field> find_lower_bridge(
     MergeableLowerHull<Field> const& left, MergeableLowerHull<Field> const& right) {
   auto lpt = left.treap, rpt = right.treap;
   auto split_x = right.begin()->u.x;
@@ -65,10 +65,10 @@ LineSegment<Field> find_bridge(
 }
 
 template<typename Field>
-LineSegment<Field> merge(MergeableLowerHull<Field> &merged,
+LineSegment<Field> merge_lower_hulls(MergeableLowerHull<Field> &merged,
     MergeableLowerHull<Field> left, MergeableLowerHull<Field> right,
     MergeableLowerHull<Field> &left_residual, MergeableLowerHull<Field> &right_residual) {
-  auto segment = find_bridge(left, right);
+  auto segment = find_lower_bridge(left, right);
   auto leftcut = [&segment](MergeableLowerHull<Field>::iterator const& it) -> bool
   { return segment.u < it->v; };
   MergeableLowerHull<Field>::cut(leftcut, left, left, left_residual);
@@ -82,7 +82,7 @@ LineSegment<Field> merge(MergeableLowerHull<Field> &merged,
 
 
 template<typename Field>
-void split(LineSegment<Field> segment, MergeableLowerHull<Field> merged,
+void split_lower_hulls(LineSegment<Field> segment, MergeableLowerHull<Field> merged,
     MergeableLowerHull<Field> &left, MergeableLowerHull<Field> &right,
     MergeableLowerHull<Field> left_residual, MergeableLowerHull<Field> right_residual) {
   auto leftbridgecut = [&segment](MergeableLowerHull<Field>::iterator const& it) -> bool
