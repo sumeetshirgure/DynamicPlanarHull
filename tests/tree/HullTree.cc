@@ -39,34 +39,42 @@ LineSegment<Field> find_bridge(
   auto lpt = left.treap, rpt = right.treap;
   auto split_x = right.begin()->u.x;
   LineSegment<Field> left_cur = lpt->element, right_cur = rpt->element;
+
+  // Thank you J.W. Gibbs
   auto ccw = [](Point<Field> const& pivot, Point<Field> const&first, Point<Field> const& second)
-  { return ((first - pivot) ^ (second - pivot)) >= 0; }; // Thank you Gibbs
-  while( left_cur.u != left_cur.v or right_cur.u != right_cur.v ) {
-    if( left_cur.u != left_cur.v and ccw(left_cur.u, right_cur.u, left_cur.v) ) {
-      lpt = lpt->left;
-      if( lpt == nullptr ) left_cur.v = left_cur.u; else left_cur = lpt->element;
-    } else if(right_cur.u != right_cur.v and ccw(left_cur.v, right_cur.v, right_cur.u) ) {
-      rpt = rpt->right;
-      if( rpt == nullptr ) right_cur.u = right_cur.v; else right_cur = rpt->element;
-    } else if( left_cur.u == left_cur.v ) {
-      rpt = rpt->left;
-      if( rpt == nullptr ) right_cur.u = right_cur.v; else right_cur = rpt->element;
-    } else if( right_cur.u == right_cur.v ) {
-      lpt = lpt->right;
-      if( lpt == nullptr ) left_cur.v = left_cur.u; else left_cur = lpt->element;
-    } else { // left.u, left.v, right.u, right.v are ccw
-      // 
-      auto dl = left_cur.v - left_cur.u, dr = right_cur.u - right_cur.v;
-      auto tlx = (split_x -left_cur.u.x), trx = (split_x - right_cur.v.x);
-      // if( left_cur.u.y + tlx * dl.y / dl.x <= right_cur.v.y + trx * dr.y / dr.x )
-      if( dl.x * dr.x * left_cur.u.y + tlx * dl.y * dr.x <= right_cur.v.y * dl.x * dr.x + trx * dr.y * dl.x ) {
-        lpt = lpt->right;
-        if( lpt == nullptr ) left_cur.v = left_cur.u; else left_cur = lpt->element;
-      } else {
+  { return ((first - pivot) ^ (second - pivot)) >= 0; };
+  auto cw = [](Point<Field> const& pivot, Point<Field> const&first, Point<Field> const& second)
+  { return ((first - pivot) ^ (second - pivot)) <= 0; };
+
+  auto lseg = left_cur.u != left_cur.v, rseg = right_cur.u != right_cur.v;
+  while( lseg or rseg ) {
+    if( not lseg ) { // rseg
+      if( ccw(left_cur.v, right_cur.u, right_cur.v) ) {
         rpt = rpt->left;
+        if( rpt == nullptr ) right_cur.v = right_cur.u; else right_cur = rpt->element;
+      } else {
+        rpt = rpt->right;
         if( rpt == nullptr ) right_cur.u = right_cur.v; else right_cur = rpt->element;
       }
+    } else if( not rseg ) { // lseg
+      if( cw(right_cur.u, left_cur.u, left_cur.v) ) {
+        lpt = lpt->left;
+        if( lpt == nullptr ) left_cur.v = left_cur.u; else left_cur = lpt->element;
+      } else {
+        lpt = lpt->right;
+        if( lpt == nullptr ) left_cur.u = left_cur.v; else left_cur = lpt->element;
+      }
+    } else { // lseg and rseg
+      if( (right_cur.v-right_cur.u) ^ (left_cur.v - left_cur.u) <= 0 ) {
+        lpt = lpt->left;
+        if( lpt == nullptr ) left_cur.v = left_cur.u; else left_cur = lpt->element;
+        rpt = rpt->right;
+        if( rpt == nullptr ) right_cur.u = right_cur.v; else right_cur = rpt->element;
+      } else { // check duality on the line x = split_x
+
+      }
     }
+    lseg = left_cur.u != left_cur.v, rseg = right_cur.u != right_cur.v;
   }
   return LineSegment(left_cur.u, right_cur.u);
 }
@@ -113,11 +121,11 @@ int main() {
   lower_hull_t left_hull, right_hull;
   for(int i = 0; i < 5; i++) {
     lower_hull_t::join(left_hull, left_hull, lower_hull_t(
-          LineSegment(Point<int>{i, i*i}, Point<int>{i+1, (i+1)*(i+1)})));
+          LineSegment(Point<int>{i-3, (i-3)*(i-3)}, Point<int>{i-2, (i-2)*(i-2)})));
   }
-  for(int i = 5; i < 10; i++) {
+  for(int i = 15; i < 20; i++) {
     lower_hull_t::join(right_hull, right_hull, lower_hull_t(
-          LineSegment(Point<int>{i, (i-10)*(i-10)}, Point<int>{i+1, (i-9)*(i-9)})));
+          LineSegment(Point<int>{i-8, (i-8)*(i-8)}, Point<int>{i-7, (i-7)*(i-7)})));
   }
 
   for(auto seg: left_hull) {
