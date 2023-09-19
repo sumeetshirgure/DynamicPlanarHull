@@ -64,6 +64,7 @@ LineSegment<Field> find_bridge(
       // if( left_cur.u.y + tlx * dl.y / dl.x <= right_cur.v.y +trx * dr.y / dr.x )
       auto lhs = dr.x * (dl.x * left_cur.u.y + tlx * dl.y),
            rhs = dl.x * (dr.x * right_cur.v.y + trx * dr.y);
+      if( dr.x * dl.x <= 0 ) lhs = -lhs, rhs = -rhs;
       if( lhs <= rhs ) {
         lpt = lpt->right;
         if( lpt == nullptr ) left_cur.u = left_cur.v; else left_cur = lpt->element;
@@ -83,13 +84,13 @@ LineSegment<Field> merge(MergeableLowerHull<Field> &merged,
     MergeableLowerHull<Field> &left_residual, MergeableLowerHull<Field> &right_residual) {
   auto segment = find_bridge(left, right);
   auto leftcut = [&segment](MergeableLowerHull<Field>::iterator const& it) -> bool
-  { return it->v > segment.u; };
-  cut(leftcut, left, left, left_residual);
+  { return segment.u < it->v; };
+  MergeableLowerHull<Field>::cut(leftcut, left, left, left_residual);
   auto rightcut = [&segment](MergeableLowerHull<Field>::iterator const& it) -> bool
-  { return it->v > segment.v; };
-  cut(rightcut, right, right_residual, right);
-  join(merged, left, MergeableLowerHull<Field>(segment));
-  join(merged, merged, right);
+  { return segment.v < it->v; };
+  MergeableLowerHull<Field>::cut(rightcut, right, right_residual, right);
+  MergeableLowerHull<Field>::join(merged, left, MergeableLowerHull<Field>(segment));
+  MergeableLowerHull<Field>::join(merged, merged, right);
   return segment;
 }
 
@@ -123,7 +124,7 @@ int main() {
   }
   for(int i = 5; i < 10; i++) {
     lower_hull_t::join(right_hull, right_hull, lower_hull_t(
-          LineSegment(Point<int>{i, (i-8)*(i-8) + 9}, Point<int>{i+1, (i-7)*(i-7) + 9})));
+          LineSegment(Point<int>{i, (i-8)*(i-8) - 9}, Point<int>{i+1, (i-7)*(i-7) - 9})));
   }
 
   for(auto seg: left_hull) {
@@ -134,7 +135,13 @@ int main() {
     cerr << "[" << to_string(seg.u) << " -- " << to_string(seg.v) << "]" << endl;
   }
 
-  auto bridge = find_bridge<int>(left_hull, right_hull);
-  cerr << "[" << to_string(bridge.u) << " -- " << to_string(bridge.v) << "]" << endl;
+
+  lower_hull_t merged, left_residue, right_residue;
+
+  auto bridge = merge<>(merged, left_hull, right_hull, left_residue, right_residue);
+
+  for(auto it: merged) cerr << to_string(it) << " ";cerr << endl;
+  for(auto it: left_residue) cerr << to_string(it) << " ";cerr << endl;
+  for(auto it: right_residue) cerr << to_string(it) << " ";cerr << endl;
 
 }
