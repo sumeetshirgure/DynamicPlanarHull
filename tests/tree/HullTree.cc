@@ -112,6 +112,19 @@ void split(LineSegment<Field> segment, MergeableLowerHull<Field> merged,
   return;
 }
 
+template<typename Field>
+bool is_convex(MergeableLowerHull<Field> const& seq) {
+  if( seq.begin() == seq.end() ) return true;
+  for(auto it = seq.begin();; ++it) {
+    auto jt = it; ++jt;
+    if( jt == seq.end() ) break;
+    auto u = it->u, v = it->v, w = jt->v;
+    if( ((v-u)*(w-u)) < 0 ) return false;
+  }
+  return true;
+};
+
+
 
 
 int main() {
@@ -144,4 +157,5 @@ int main() {
   for(auto it: left_residue) cerr << to_string(it) << " ";cerr << endl;
   for(auto it: right_residue) cerr << to_string(it) << " ";cerr << endl;
 
+  cout << is_convex(merged) << endl;
 }
