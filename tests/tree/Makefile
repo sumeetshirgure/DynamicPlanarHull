@@ -1,10 +1,10 @@
 it: interval_treap.cc
 	g++ -g -std=c++20 interval_treap.cc -o it
 
-h: hull.cc HullTree.hh MergeableLowerHull.hh MergeableUpperHull.hh
-	g++ -g -std=c++20 hull.cc -o h
+hmt: hull_merge_test.cc HullTree.hh MergeableLowerHull.hh MergeableUpperHull.hh
+	g++ -g -std=c++20 hull_merge_test.cc -o hmt
 
 all: ht it
 
 clean :
-	rm -f ht it
+	rm -f it hmt
