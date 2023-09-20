@@ -3,13 +3,14 @@ CXXFLAGS=-std=c++17 -g
 
 .PHONY: all clean
 
-all: bin bin/test_convex_hull bin/test_online_hull bin/test_perf
+all: DIR bin/test_convex_hull bin/test_online_hull bin/online/test_perf
 
-bin:
+DIR:
 	mkdir -p ./bin
+	mkdir -p ./bin/online ./bin/dynamic
 
-bin/test_perf:
-	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/perf/AddPoint.cc
+bin/online/test_perf:
+	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/perf/online/AddPoint.cc
 
 bin/test_convex_hull:
 	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/val/ConvexHull.cc
