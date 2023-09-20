@@ -1,8 +1,8 @@
-#include "Point.hh"
-#include "ConvexHull.hh"
-#include "OnlineHull.hh"
-#include "Tangent.hh"
-#include "TestGenerator.hh"
+#include "util/Point.hh"
+#include "util/TestGenerator.hh"
+#include "util/Tangent.hh"
+#include "static/ConvexHull.hh"
+#include "online/OnlineHull.hh"
 
 #include <chrono>
 #include <cmath>

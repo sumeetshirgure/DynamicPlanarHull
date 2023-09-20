@@ -1,6 +1,6 @@
 // Solving https://open.kattis.com/problems/convexhull as a test.
 
-#include "ConvexHull.hh"
+#include "static/ConvexHull.hh"
 
 #include <iostream>
 

@@ -7,7 +7,7 @@
 using std::vector;
 using std::pair;
 
-#include "Point.hh"
+#include "util/Point.hh"
 
 template<typename Field>
 std::pair< bool, std::pair< Point<Field>, Point<Field> > >

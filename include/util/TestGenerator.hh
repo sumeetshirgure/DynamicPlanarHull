@@ -4,6 +4,7 @@
 #include <random>
 #include <chrono>
 #include <vector>
+#include <algorithm>
 
 template<typename Integer>
 std::vector< Point<Integer> > random_int_test(size_t n_points)

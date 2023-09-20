@@ -6,7 +6,7 @@
 using std::vector;
 using std::pair;
 
-#include "Point.hh"
+#include "util/Point.hh"
 
 template<typename T> using Chain = vector< Point<T> >;
 

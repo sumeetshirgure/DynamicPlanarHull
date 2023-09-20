@@ -6,7 +6,7 @@
 #include <list>
 #include <queue>
 
-#include "Point.hh"
+#include "util/Point.hh"
 
 template<typename Field>
 class OnlineHull

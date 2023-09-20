@@ -1,37 +1,16 @@
 
-#include "Point.hh"
+#include "util/Point.hh"
+#include "util/TestGenerator.hh"
+#include "util/ConvexHull.hh"
+#include "util/Tangent.hh"
+#include "dynamic/DynamicHull.hh"
 
-template<typename Field>
-class OnlineHull
-{
+#include <chrono>
+#include <cmath>
+#include <random>
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include <cassert>
 
-private :
 
-public :
-
-	using size_t = int32_t;
-
-	DynamicHull();
-	~DynamicHull();
-
-	bool add_point(Point<Field> const&);
-
-	std::pair< bool, std::pair< Point<Field>, Point<Field> > >
-    	get_tangents (Point<Field> const&);
-
-	std::pair< Point<Field>, Point<Field> >
-	    get_extremal_points(Point<Field> const&);
-
-	template<typename Callback> void traverse_lower_hull(Callback const&);
-	template<typename Callback> void traverse_upper_hull(Callback const&);
-
-	size_t get_lower_hull_size() const;
-	size_t get_upper_hull_size() const;
-	size_t get_hull_size() const;
-
-    size_t get_set_size() const;
-
-    template<typename Callback> void traverse_set (Callback const&);
-	template<typename Callback> void traverse_hull(Callback const&);
-
-};
