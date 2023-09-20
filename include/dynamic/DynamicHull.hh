@@ -3,6 +3,11 @@
 
 #include <cassert>
 #include <optional>
+#include <vector>
+#include <iostream>
+
+#include "MergeableLowerHull.hh"
+#include "MergeableUpperHull.hh"
 
 template<typename Field>
 class DynamicHull {
@@ -15,10 +20,12 @@ class DynamicHull {
     DynamicHull();
     ~DynamicHull();
 
-    bool add_point(Point<Field> const&);
+    void add_point(Point<Field> const&);
     bool remove_point(Point<Field> const&);
 
-    std::optional< std::pair< std::pair< Point<Field>, Point<Field> > > >
+    bool point_in_polygon(Point<Field> const&);
+
+    std::optional< std::pair< Point<Field>, Point<Field> > >
       get_tangents (Point<Field> const&) const;
 
     std::pair< Point<Field>, Point<Field> >
@@ -221,4 +228,15 @@ class DynamicHull {
     }
 
 };
+
+
+template<typename Field>
+void DynamicHull<Field>::add_point(Point<Field> const&) {
+}
+
+template<typename Field>
+bool DynamicHull<Field>::remove_point(Point<Field> const&) {
+  return false;
+}
+
 
