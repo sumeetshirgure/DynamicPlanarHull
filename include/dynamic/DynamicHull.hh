@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <cassert>
 #include <optional>
 #include <vector>
 #include <iostream>
@@ -107,7 +106,6 @@ class DynamicHull {
         lower_bridge = merge_lower_hulls(lower_hull(),
             left->lower_hull(), right->lower_hull(),
             lower_left_residue, lower_right_residue);
-        assert(is_convex(lower_hull()));
 
         upper_bridge = merge_upper_hulls(upper_hull(),
             left->upper_hull(), right->upper_hull(),

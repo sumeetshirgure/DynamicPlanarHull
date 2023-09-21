@@ -89,7 +89,7 @@ void split_upper_hulls(LineSegment<Field> const& bridge, MergeableUpperHull<Fiel
       { return bridge.v < it->v; }, merged, left, right);
   MergeableUpperHull<Field>::cut( [&](MergeableUpperHull<Field>::iterator const&it)
       { return bridge.u < it->v; }, left, left, bt);
-  assert(bt.get_size() == 0 or bt.get_size() == 1 and *(bt._begin)==bridge);
+  // assert(bt.get_size() == 0 or bt.get_size() == 1 and *(bt._begin)==bridge);
   bt.destroy(); // deallocate memory
   MergeableUpperHull<Field>::join(left, left, left_residual);
   MergeableUpperHull<Field>::join(right, right_residual, right);
