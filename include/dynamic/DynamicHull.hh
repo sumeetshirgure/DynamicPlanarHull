@@ -38,6 +38,7 @@ class DynamicHull {
     size_t get_lower_hull_size() const;
     size_t get_upper_hull_size() const;
     size_t get_hull_size() const;
+    size_t get_num_points() const;
 
     template<typename Callback> void traverse_hull(Callback const&) const;
     template<typename Callback> void traverse_set (Callback const&) const;
@@ -56,6 +57,8 @@ class DynamicHull {
         inline virtual TotalOrder hi() const = 0;
     };
 
+
+    size_t _leaves = 0;
     TreapNode < Point<Field> > * master_root = nullptr;
 
     template<typename TotalOrder> class TreapLeaf : public TreapNode<TotalOrder> {
@@ -175,6 +178,7 @@ class DynamicHull {
         auto leaf = static_cast<TreapLeaf<TotalOrder>*>(tree);
         if( (leaf->hi() < point) or (point < leaf->lo()) ) return false;
         delete leaf, tree = nullptr;
+        _leaves--;
         return true;
       }
       auto _tree = static_cast<TreapBranch<TotalOrder>*>(tree);
@@ -260,11 +264,14 @@ std::uniform_int_distribution< int32_t > DynamicHull<Field>::rng;
 template<typename Field>
 void DynamicHull<Field>::add_point(Point<Field> const& point) {
   insert(point, master_root);
+  _leaves++;
 }
 
 template<typename Field>
 bool DynamicHull<Field>::remove_point(Point<Field> const& point) {
-  return remove(point, master_root);
+  bool was_present = remove(point, master_root);
+  if( was_present ) _leaves--;
+  return was_present;
 }
 
 template<typename Field>
@@ -296,4 +303,9 @@ void DynamicHull<Field>::traverse_upper_hull(Callback const& callback) const {
   if( master_root == nullptr ) return;
   for(auto segment: master_root->upper_hull())
     callback(segment);
+}
+
+template<typename Field>
+DynamicHull<Field>::size_t DynamicHull<Field>::get_num_points() const {
+  return _leaves;
 }

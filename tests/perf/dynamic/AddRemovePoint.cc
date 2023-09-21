@@ -18,28 +18,28 @@ void test_perf( std::vector< Point<Field> > const& points ) {
   while( iter != points.end() ) {
     auto const&point = *iter++;
     /* Get hull sizes. */
-    auto hull_size = dynamic_hull.get_hull_size();
+    auto num_points = dynamic_hull.get_num_points();
     /* Check time. */
     auto tick = std::chrono::high_resolution_clock::now();
     dynamic_hull.add_point(point);
     auto tock = std::chrono::high_resolution_clock::now();
     auto runtime = std::chrono::duration_cast
       <std::chrono::nanoseconds>(tock - tick).count();
-    std::cout << hull_size << ':' << runtime << '\n';
+    std::cout << num_points << ':' << runtime << '\n';
   };
 
   iter = points.begin();
   while( iter != points.end() ) {
     auto const&point = *iter++;
     /* Get hull sizes. */
-    auto hull_size = dynamic_hull.get_hull_size();
+    auto num_points = dynamic_hull.get_num_points();
     /* Check time. */
     auto tick = std::chrono::high_resolution_clock::now();
     dynamic_hull.remove_point(point);
     auto tock = std::chrono::high_resolution_clock::now();
     auto runtime = std::chrono::duration_cast
       <std::chrono::nanoseconds>(tock - tick).count();
-    std::cout << hull_size << ':' << runtime << '\n';
+    std::cout << num_points << ':' << runtime << '\n';
   };
 
 
