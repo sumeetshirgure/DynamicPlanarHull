@@ -55,7 +55,7 @@ class HullTree {
   iterator _begin{nullptr}, _end{nullptr};
   reverse_iterator _rbegin{nullptr}, _rend{nullptr};
 
-  void erase(TreapNode *);
+  void erase(TreapNode *&);
 };
 
 template<typename Element>
@@ -136,6 +136,7 @@ template<typename Element>
 inline HullTree<Element>::iterator const HullTree<Element>::end() const
 { return _end; }
 
+
 template<typename Element>
 struct HullTree<Element>::TreapNode {
   HullTree<Element>::priority_t priority;
@@ -158,16 +159,17 @@ HullTree<Element>::HullTree(Element const& element) {
   treap = new HullTree<Element>::TreapNode(element); 
   _begin = treap;
   _rbegin = treap;
+  treap->size = 1;
 }
 
 template<typename Element>
 void HullTree<Element>::destroy() { erase(treap); }
 
 template<typename Element>
-void HullTree<Element>::erase(TreapNode * root) {
+void HullTree<Element>::erase(TreapNode *& root) {
   if( root == nullptr ) return;
   erase(root->left), erase(root->right);
-  delete root;
+  delete root, root = nullptr;
 }
 
 

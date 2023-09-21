@@ -74,12 +74,12 @@ class DynamicHull {
       inline upper_hull_t& upper_hull() { return _upper_hull; }
 
       TreapLeaf(const TotalOrder& _point) : point(_point) { 
-        // std::cerr << "Created point " << to_string(point) << std::endl;
+        std::cerr << "Created point " << to_string(point) << std::endl;
         _lower_hull = MergeableLowerHull<Field>(LineSegment<Field>{point, point});
         _upper_hull = MergeableUpperHull<Field>(LineSegment<Field>{point, point});
       }
       ~TreapLeaf() {
-        // std::cerr << "Deleted point " << to_string(point) << std::endl;
+        std::cerr << "Deleted point " << to_string(point) << std::endl;
         _lower_hull.destroy(), _upper_hull.destroy();
       }
     };
@@ -100,26 +100,43 @@ class DynamicHull {
       inline lower_hull_t& lower_hull() { return _lower_hull; }
       inline upper_hull_t& upper_hull() { return _upper_hull; }
       inline void pull() {
-        // assert(left != nullptr and right != nullptr);
-        // std::cerr << "Pulled branch " << priority() 
-        //   << " " << to_string(_lo) << " " << to_string(_hi) << std::endl;
-        // assert(!merged);
         _lo = left->lo(), _hi = right->hi();
+        std::cerr << "Pulled branch " << priority() 
+          << " " << to_string(_lo) << " " << to_string(_hi) << std::endl;
+
+
+        std::cerr << "Merging ..." << std::endl;
+        for(auto const& seg: left->lower_hull())
+          std::cerr << to_string(seg) << " ";
+        std::cerr << "... and ..." << std::endl;
+        for(auto const& seg: right->lower_hull())
+          std::cerr << to_string(seg) << " ";
+        std::cerr << "... to get ..." << std::endl;
 
         lower_bridge = merge_lower_hulls(lower_hull(),
             left->lower_hull(), right->lower_hull(),
             lower_left_residue, lower_right_residue);
 
+        std::cerr << "Bridge :" << to_string(lower_bridge) << std::endl;
+        std::cerr << " H "; for(auto const& seg: lower_hull()) std::cerr << to_string(seg) << " ";
+        std::cerr << std::endl;
+        std::cerr << " llr "; for(auto const& seg: lower_left_residue) std::cerr << to_string(seg) << " ";
+        std::cerr << std::endl;
+        std::cerr << " lrr "; for(auto const& seg: lower_right_residue) std::cerr << to_string(seg) << " ";
+        std::cerr << std::endl;
+        std::cerr << " lh "; for(auto const& seg: left->lower_hull()) std::cerr << to_string(seg) << " ";
+        std::cerr << std::endl;
+        std::cerr << " rh "; for(auto const& seg: right->lower_hull()) std::cerr << to_string(seg) << " ";
+        std::cerr << std::endl;
+        std::cerr << ".............." << lower_hull().get_size() << std::endl;
+
         upper_bridge = merge_upper_hulls(upper_hull(),
             left->upper_hull(), right->upper_hull(),
             upper_left_residue, upper_right_residue);
-
-        // merged = true;
       }
       void push() {
-        // assert(left != nullptr and right != nullptr);
-        // assert(merged);
-
+        std::cerr << "Pushed branch " << priority() 
+          << " " << to_string(_lo) << " " << to_string(_hi) << std::endl;
         split_lower_hulls(lower_bridge, lower_hull(),
             left->lower_hull(), right->lower_hull(),
             lower_left_residue, lower_right_residue);
@@ -127,8 +144,6 @@ class DynamicHull {
         split_upper_hulls(upper_bridge, upper_hull(),
             left->upper_hull(), right->upper_hull(),
             upper_left_residue, upper_right_residue);
-
-        // merged = false;
       }
     };
 
@@ -287,8 +302,23 @@ DynamicHull<Field>::size_t DynamicHull<Field>::get_upper_hull_size() const {
   return master_root == nullptr ? 0 : master_root->upper_hull().get_size();
 }
 
-
 template<typename Field>
 DynamicHull<Field>::size_t DynamicHull<Field>::get_hull_size() const {
   return get_lower_hull_size() + get_upper_hull_size();
+}
+
+template<typename Field>
+template<typename Callback>
+void DynamicHull<Field>::traverse_lower_hull(Callback const& callback) const {
+  if( master_root == nullptr ) return;
+  for(auto const segment: master_root->lower_hull())
+    callback(segment);
+}
+
+template<typename Field>
+template<typename Callback> 
+void DynamicHull<Field>::traverse_upper_hull(Callback const& callback) const {
+  if( master_root == nullptr ) return;
+  for(auto segment: master_root->upper_hull())
+    callback(segment);
 }

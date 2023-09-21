@@ -3,7 +3,7 @@ CXXFLAGS=-std=c++20 -g
 
 .PHONY: all clean
 
-all: DIR bin/test_convex_hull bin/test_online_hull bin/online/test_perf bin/dynamic/test_perf
+all: DIR bin/val_convex_hull bin/online/val bin/dynamic/val bin/online/test_perf bin/dynamic/test_perf
 
 DIR:
 	mkdir -p ./bin
@@ -15,11 +15,14 @@ bin/online/test_perf:
 bin/dynamic/test_perf:
 	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/perf/dynamic/AddRemovePoint.cc
 
-bin/test_convex_hull:
+bin/val_convex_hull:
 	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/val/ConvexHull.cc
 
-bin/test_online_hull:
+bin/online/val:
 	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/val/OnlineHull.cc
+
+bin/dynamic/val:
+	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/val/DynamicHull.cc
 
 clean :
 	rm -rvf bin/*

@@ -144,7 +144,60 @@ int test_upper_2() {
 }
 
 
+int __test_specific() {
+  using lower_hull_t = MergeableLowerHull<int>;
+  using upper_hull_t = MergeableUpperHull<int>;
+  upper_hull_t left_hull, right_hull;
+  upper_hull_t::join(left_hull, left_hull, lower_hull_t(LineSegment(Point<int>{ 8, 24}, Point<int>{43, 21})));
+
+  upper_hull_t::join(right_hull, right_hull, lower_hull_t(LineSegment(Point<int>{93, 9}, Point<int>{93, 9})));
+
+  cout << is_concave(left_hull) << endl;
+  cout << is_concave(right_hull) << endl;
+
+  upper_hull_t merged, left_residue, right_residue;
+
+  auto bridge = merge_upper_hulls<>(merged, left_hull, right_hull, left_residue, right_residue);
+
+  cerr << "B" << to_string(bridge) << std::endl;
+
+  cerr << "M" << endl; for(auto it: merged) cerr << to_string(it) << " ";cerr << endl;
+  cerr << "L" << endl; for(auto it: left_residue) cerr << to_string(it) << " ";cerr << endl;
+  cerr << "R" << endl; for(auto it: right_residue) cerr << to_string(it) << " ";cerr << endl;
+
+  cout << is_concave(merged) << endl;
+  return 0;
+}
+
+int test_specific() {
+  using lower_hull_t = MergeableLowerHull<int>;
+  using upper_hull_t = MergeableUpperHull<int>;
+  lower_hull_t left_hull, right_hull;
+  lower_hull_t::join(left_hull, left_hull, lower_hull_t(LineSegment(Point<int>{-4, -2}, Point<int>{1, -3})));
+  lower_hull_t::join(left_hull, left_hull, lower_hull_t(
+        LineSegment(Point<int>{3, 9}, Point<int>{20, 0})));
+
+  lower_hull_t::join(right_hull, right_hull, lower_hull_t(LineSegment(Point<int>{20, 0}, Point<int>{20, 0})));
+
+  lower_hull_t merged, left_residue, right_residue;
+
+  auto bridge = merge_lower_hulls<>(merged, left_hull, right_hull, left_residue, right_residue);
+
+  cerr << "B" << to_string(bridge) << std::endl;
+
+  cerr << "M" << endl; for(auto it: merged) cerr << to_string(it) << " ";cerr << endl;
+  cerr << "L" << endl; for(auto it: left_residue) cerr << to_string(it) << " ";cerr << endl;
+  cerr << "R" << endl; for(auto it: right_residue) cerr << to_string(it) << " ";cerr << endl;
+
+  cout << is_convex(merged) << endl;
+  return 0;
+}
+
+
 int main() {
+
+  test_specific();
+  return 0;
 
   test_lower();
   test_upper();

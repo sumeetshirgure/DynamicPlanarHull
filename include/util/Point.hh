@@ -18,6 +18,9 @@ template<typename T> struct Point
 template<typename T> Point<T> operator+(const Point<T>&p, const Point<T>&q)
 { return Point<T>(p.x+q.x, p.y+q.y); }
 
+template<typename T> Point<T> operator-(const Point<T>&p)
+{ return Point<T>(-p.x, -p.y); }
+
 template<typename T> Point<T> operator-(const Point<T>&p, const Point<T>&q)
 { return Point<T>(p.x-q.x, p.y-q.y); }
 

@@ -66,35 +66,34 @@ LineSegment<Field> find_lower_bridge(
   return LineSegment(left_cur.u, right_cur.u);
 }
 
+#define pr(v) for(auto const&seg: v) std::cerr<<to_string(seg)<<" ";
+
 template<typename Field>
 LineSegment<Field> merge_lower_hulls(MergeableLowerHull<Field> &merged,
     MergeableLowerHull<Field> &left, MergeableLowerHull<Field> &right,
     MergeableLowerHull<Field> &left_residual, MergeableLowerHull<Field> &right_residual) {
-  auto segment = find_lower_bridge(left, right);
-  auto leftcut = [&segment](MergeableLowerHull<Field>::iterator const& it) -> bool
-  { return segment.u < it->v; };
-  MergeableLowerHull<Field>::cut(leftcut, left, left, left_residual);
-  auto rightcut = [&segment](MergeableLowerHull<Field>::iterator const& it) -> bool
-  { return segment.v < it->v; };
-  MergeableLowerHull<Field>::cut(rightcut, right, right_residual, right);
-  MergeableLowerHull<Field>::join(merged, left, MergeableLowerHull<Field>(segment));
+  auto bridge = find_lower_bridge(left, right);
+  MergeableLowerHull<Field>::cut( [&](MergeableLowerHull<Field>::iterator const&it)
+      { return not (it->v < bridge.u);}, left, left, left_residual);
+  MergeableLowerHull<Field>::cut( [&](MergeableLowerHull<Field>::iterator const&it)
+      { return bridge.v < it->v; }, right, right_residual, right);
+  MergeableLowerHull<Field>::join(merged, left, MergeableLowerHull<Field>(bridge));
   MergeableLowerHull<Field>::join(merged, merged, right);
-  return segment;
+  return bridge;
 }
 
 
 template<typename Field>
-void split_lower_hulls(LineSegment<Field> const& segment, MergeableLowerHull<Field> &merged,
+void split_lower_hulls(LineSegment<Field> const& bridge, MergeableLowerHull<Field> &merged,
     MergeableLowerHull<Field> &left, MergeableLowerHull<Field> &right,
     MergeableLowerHull<Field> &left_residual, MergeableLowerHull<Field> &right_residual) {
-  auto leftbridgecut = [&segment](MergeableLowerHull<Field>::iterator const& it) -> bool
-  { return segment.u < it->v; };
-  auto rightbridgecut = [&segment](MergeableLowerHull<Field>::iterator const& it) -> bool
-  { return segment.v < it->v; };
-  MergeableLowerHull<Field> bridge;
-  MergeableLowerHull<Field>::cut(leftbridgecut, merged, left, right);
-  MergeableLowerHull<Field>::cut(rightbridgecut, right, bridge, right);
-  bridge.destroy(); // deallocate memory
+  MergeableLowerHull<Field> bt;
+  MergeableLowerHull<Field>::cut( [&](MergeableLowerHull<Field>::iterator const&it)
+      { return bridge.v < it->v; }, merged, left, right);
+  MergeableLowerHull<Field>::cut( [&](MergeableLowerHull<Field>::iterator const&it)
+      { return bridge.u < it->v; }, left, left, bt);
+  assert(bt.get_size() == 1 and *(bt._begin)==bridge);
+  bt.destroy(); // deallocate memory
   MergeableLowerHull<Field>::join(left, left, left_residual);
   MergeableLowerHull<Field>::join(right, right_residual, right);
 }

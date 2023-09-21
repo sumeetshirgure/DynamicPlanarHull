@@ -3,6 +3,8 @@
 #include "util/Point.hh"
 #include "util/LineSegment.hh"
 
+#include "dynamic/HullTree.hh"
+
 template<typename Field>
 class MergeableUpperHull : public HullTree<LineSegment<Field>> {
   friend LineSegment<Field>
@@ -12,7 +14,7 @@ class MergeableUpperHull : public HullTree<LineSegment<Field>> {
       MergeableUpperHull &left, MergeableUpperHull &right,
       MergeableUpperHull &left_residual, MergeableUpperHull &right_residual);
 
-  friend void split_upper_hulls<>(LineSegment<Field> const& bridge, MergeableUpperHull &merged,
+  friend void split_upper_hulls<>(LineSegment<Field> const& bridge, MergeableUpperHull merged,
       MergeableUpperHull &left, MergeableUpperHull &right,
       MergeableUpperHull &left_residual, MergeableUpperHull &right_residual);
 };
@@ -23,27 +25,27 @@ template<typename Field>
 LineSegment<Field> find_upper_bridge(
     MergeableUpperHull<Field> const& left, MergeableUpperHull<Field> const& right) {
   auto lpt = left.treap, rpt = right.treap;
-  auto split_x = right.begin()->u.x;
-  LineSegment<Field> left_cur = lpt->element, right_cur = rpt->element;
+  auto split_x = -(right.begin()->u.x);
+  LineSegment<Field> left_cur = ~(lpt->element), right_cur = ~(rpt->element);
 
-  auto ccw = [](Point<Field> const& pivot,
+  auto cw = [](Point<Field> const& pivot,
       Point<Field> const&first, Point<Field> const& second)
-  { return ((first - pivot) * (second - pivot)) >= 0; };
+  { return ((first - pivot) * (second - pivot)) <= 0; };
 
   auto lseg = left_cur.u != left_cur.v, rseg = right_cur.u != right_cur.v;
   while( lseg or rseg ) {
-    if( lseg and ccw(left_cur.u, left_cur.v, right_cur.u) ) {
-      lpt = lpt->left;
-      if( lpt == nullptr ) left_cur.v = left_cur.u; else left_cur = lpt->element;
-    } else if( rseg and ccw(left_cur.v, right_cur.u, right_cur.v) ) {
-      rpt = rpt->right;
-      if( rpt == nullptr ) right_cur.u = right_cur.v; else right_cur = rpt->element;
-    } else if ( not lseg ) { // => cw0(lv, ru, rv);
-      rpt = rpt->left;
-      if( rpt == nullptr ) right_cur.v = right_cur.u; else right_cur = rpt->element;
-    } else if ( not rseg ) { // => cw0(lu, lv, ru);
+    if( lseg and cw(left_cur.u, left_cur.v, right_cur.u) ) {
       lpt = lpt->right;
-      if( lpt == nullptr ) left_cur.u = left_cur.v; else left_cur = lpt->element;
+      if( lpt == nullptr ) left_cur.v = left_cur.u; else left_cur = ~(lpt->element);
+    } else if( rseg and cw(left_cur.v, right_cur.u, right_cur.v) ) {
+      rpt = rpt->left;
+      if( rpt == nullptr ) right_cur.u = right_cur.v; else right_cur = ~(rpt->element);
+    } else if ( not lseg ) { // => ccw0(lv, ru, rv);
+      rpt = rpt->right;
+      if( rpt == nullptr ) right_cur.u = right_cur.v; else right_cur = ~(rpt->element);
+    } else if ( not rseg ) { // => ccw0(lu, lv, ru);
+      lpt = lpt->left;
+      if( lpt == nullptr ) left_cur.v = left_cur.u; else left_cur = ~(lpt->element);
     } else {
       auto dl  = left_cur.v - left_cur.u, dr = right_cur.u - right_cur.v;
       auto tlx = (split_x - left_cur.u.x), trx = (split_x - right_cur.v.x);
@@ -51,17 +53,17 @@ LineSegment<Field> find_upper_bridge(
       auto lhs = dr.x * (dl.x * left_cur.u.y + tlx * dl.y),
            rhs = dl.x * (dr.x * right_cur.v.y + trx * dr.y);
       if( dr.x * dl.x <= 0 ) lhs = -lhs, rhs = -rhs;
-      if( lhs >= rhs ) {
-        lpt = lpt->right;
-        if( lpt == nullptr ) left_cur.u = left_cur.v; else left_cur = lpt->element;
+      if( lhs <= rhs ) {
+        lpt = lpt->left;
+        if( lpt == nullptr ) left_cur.v = left_cur.u; else left_cur = ~(lpt->element);
       } else {
-        rpt = rpt->left;
-        if( rpt == nullptr ) right_cur.v = right_cur.u; else right_cur = rpt->element;
+        rpt = rpt->right;
+        if( rpt == nullptr ) right_cur.u = right_cur.v; else right_cur = ~(rpt->element);
       }
     }
     lseg = left_cur.u != left_cur.v, rseg = right_cur.u != right_cur.v;
   }
-  return LineSegment(left_cur.u, right_cur.u);
+  return LineSegment(-left_cur.u, -right_cur.u);
 }
 
 template<typename Field>
@@ -70,7 +72,7 @@ LineSegment<Field> merge_upper_hulls(MergeableUpperHull<Field> &merged,
     MergeableUpperHull<Field> &left_residual, MergeableUpperHull<Field> &right_residual) {
   auto segment = find_upper_bridge<>(left, right);
   auto leftcut = [&segment](MergeableUpperHull<Field>::iterator const& it) -> bool
-  { return segment.u < it->v; };
+  { return not(it->v < segment.u); };
   MergeableUpperHull<Field>::cut(leftcut, left, left, left_residual);
   auto rightcut = [&segment](MergeableUpperHull<Field>::iterator const& it) -> bool
   { return segment.v < it->v; };
@@ -82,7 +84,7 @@ LineSegment<Field> merge_upper_hulls(MergeableUpperHull<Field> &merged,
 
 
 template<typename Field>
-void split_upper_hulls(LineSegment<Field> const& segment, MergeableUpperHull<Field> &merged,
+void split_upper_hulls(LineSegment<Field> const& segment, MergeableUpperHull<Field> merged,
     MergeableUpperHull<Field> &left, MergeableUpperHull<Field> &right,
     MergeableUpperHull<Field> &left_residual, MergeableUpperHull<Field> &right_residual) {
   auto leftbridgecut = [&segment](MergeableUpperHull<Field>::iterator const& it) -> bool
