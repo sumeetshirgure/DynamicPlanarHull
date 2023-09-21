@@ -11,12 +11,12 @@ class MergeableLowerHull : public HullTree<LineSegment<Field>> {
     find_lower_bridge<>(MergeableLowerHull const& left, MergeableLowerHull const& right);
 
   friend LineSegment<Field> merge_lower_hulls<>( MergeableLowerHull &merged,
-      MergeableLowerHull left, MergeableLowerHull right,
+      MergeableLowerHull &left, MergeableLowerHull &right,
       MergeableLowerHull &left_residual, MergeableLowerHull &right_residual);
 
   friend void split_lower_hulls<>(LineSegment<Field> const& bridge, MergeableLowerHull &merged,
       MergeableLowerHull &left, MergeableLowerHull &right,
-      MergeableLowerHull left_residual, MergeableLowerHull right_residual);
+      MergeableLowerHull &left_residual, MergeableLowerHull &right_residual);
 };
 
 
@@ -68,7 +68,7 @@ LineSegment<Field> find_lower_bridge(
 
 template<typename Field>
 LineSegment<Field> merge_lower_hulls(MergeableLowerHull<Field> &merged,
-    MergeableLowerHull<Field> left, MergeableLowerHull<Field> right,
+    MergeableLowerHull<Field> &left, MergeableLowerHull<Field> &right,
     MergeableLowerHull<Field> &left_residual, MergeableLowerHull<Field> &right_residual) {
   auto segment = find_lower_bridge(left, right);
   auto leftcut = [&segment](MergeableLowerHull<Field>::iterator const& it) -> bool
@@ -86,7 +86,7 @@ LineSegment<Field> merge_lower_hulls(MergeableLowerHull<Field> &merged,
 template<typename Field>
 void split_lower_hulls(LineSegment<Field> const& segment, MergeableLowerHull<Field> &merged,
     MergeableLowerHull<Field> &left, MergeableLowerHull<Field> &right,
-    MergeableLowerHull<Field> left_residual, MergeableLowerHull<Field> right_residual) {
+    MergeableLowerHull<Field> &left_residual, MergeableLowerHull<Field> &right_residual) {
   auto leftbridgecut = [&segment](MergeableLowerHull<Field>::iterator const& it) -> bool
   { return segment.u < it->v; };
   auto rightbridgecut = [&segment](MergeableLowerHull<Field>::iterator const& it) -> bool
@@ -94,9 +94,9 @@ void split_lower_hulls(LineSegment<Field> const& segment, MergeableLowerHull<Fie
   MergeableLowerHull<Field> bridge;
   MergeableLowerHull<Field>::cut(leftbridgecut, merged, left, right);
   MergeableLowerHull<Field>::cut(rightbridgecut, right, bridge, right);
+  bridge.destroy(); // deallocate memory
   MergeableLowerHull<Field>::join(left, left, left_residual);
   MergeableLowerHull<Field>::join(right, right_residual, right);
-  return;
 }
 
 template<typename Field>

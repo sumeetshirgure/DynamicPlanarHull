@@ -74,13 +74,13 @@ class DynamicHull {
       inline upper_hull_t& upper_hull() { return _upper_hull; }
 
       TreapLeaf(const TotalOrder& _point) : point(_point) { 
-        std::cerr << "Created point " << to_string(point) << std::endl;
+        // std::cerr << "Created point " << to_string(point) << std::endl;
         _lower_hull = MergeableLowerHull<Field>(LineSegment<Field>{point, point});
         _upper_hull = MergeableUpperHull<Field>(LineSegment<Field>{point, point});
       }
       ~TreapLeaf() {
-        std::cerr << "Deleted point " << to_string(point) << std::endl;
-        // _lower_hull.destroy(), _upper_hull.destroy();
+        // std::cerr << "Deleted point " << to_string(point) << std::endl;
+        _lower_hull.destroy(), _upper_hull.destroy();
       }
     };
 
@@ -90,7 +90,7 @@ class DynamicHull {
       lower_hull_t _lower_hull, lower_left_residue, lower_right_residue;
       upper_hull_t _upper_hull, upper_left_residue, upper_right_residue;
       LineSegment<Field> lower_bridge, upper_bridge;
-      bool merged = false;
+      // bool merged = false;
       public:
       TreapNode<TotalOrder> *left = nullptr, *right = nullptr;
       bool is_leaf() const { return false; }
@@ -101,13 +101,10 @@ class DynamicHull {
       inline upper_hull_t& upper_hull() { return _upper_hull; }
       inline void pull() {
         // assert(left != nullptr and right != nullptr);
+        // std::cerr << "Pulled branch " << priority() 
+        //   << " " << to_string(_lo) << " " << to_string(_hi) << std::endl;
+        // assert(!merged);
         _lo = left->lo(), _hi = right->hi();
-        std::cerr << "Pulled branch " << priority() 
-          << " " << to_string(_lo) << " " << to_string(_hi) << std::endl;
-
-        assert(!merged);
-        if( left->is_leaf() ) std::cerr << "Left Leaf" << std::endl;
-        if( right->is_leaf() ) std::cerr << "Right leaf" << std::endl;
 
         lower_bridge = merge_lower_hulls(lower_hull(),
             left->lower_hull(), right->lower_hull(),
@@ -117,27 +114,21 @@ class DynamicHull {
             left->upper_hull(), right->upper_hull(),
             upper_left_residue, upper_right_residue);
 
-        merged = true;
+        // merged = true;
       }
       void push() {
         // assert(left != nullptr and right != nullptr);
-        std::cerr << "Pushed branch " << priority() 
-          << " " << to_string(_lo) << " " << to_string(_hi) << std::endl;
-
-        assert(merged);
-
-        if( left->is_leaf() ) std::cerr << "!Left Leaf" << std::endl;
-        if( right->is_leaf() ) std::cerr << "!Right leaf" << std::endl;
+        // assert(merged);
 
         split_lower_hulls(lower_bridge, lower_hull(),
             left->lower_hull(), right->lower_hull(),
-            lower_left_residue, lower_left_residue);
+            lower_left_residue, lower_right_residue);
 
         split_upper_hulls(upper_bridge, upper_hull(),
             left->upper_hull(), right->upper_hull(),
             upper_left_residue, upper_right_residue);
 
-        merged = false;
+        // merged = false;
       }
     };
 

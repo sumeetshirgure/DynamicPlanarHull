@@ -55,6 +55,7 @@ class HullTree {
   iterator _begin{nullptr}, _end{nullptr};
   reverse_iterator _rbegin{nullptr}, _rend{nullptr};
 
+  void erase(TreapNode *);
 };
 
 template<typename Element>
@@ -160,15 +161,13 @@ HullTree<Element>::HullTree(Element const& element) {
 }
 
 template<typename Element>
-void HullTree<Element>::destroy() {
-  TreapNode* it = treap;
-  if( it == nullptr ) return;
-  std::cerr << "Destroying " << to_string(it->element) << std::endl;
-  while( it->left != nullptr ) it = it->left;
-  while( it != nullptr ) {
-    auto prev = it; ++it;
-    delete prev;
-  }
+void HullTree<Element>::destroy() { erase(treap); }
+
+template<typename Element>
+void HullTree<Element>::erase(TreapNode * root) {
+  if( root == nullptr ) return;
+  erase(root->left), erase(root->right);
+  delete root;
 }
 
 
@@ -193,14 +192,20 @@ template<typename Element>
 template<typename Predicate>
 void HullTree<Element>::cut(const Predicate &predicate,
     HullTree from, HullTree &left, HullTree &right) {
+
   __cut(predicate, from.treap, left.treap, right.treap);
-  auto lt = left.treap, rt = right.treap;
-  if( lt == nullptr or rt == nullptr ) return;
-  while(lt->right != nullptr) lt = lt->right;
-  while(rt->left  != nullptr) rt = rt->left;
-  right._begin = iterator(rt);
-  left._begin  = from._begin;
-  lt->next = nullptr, rt->prev = nullptr;
+
+  // update begin, _rbegin, prev, next
+  left._begin = right._begin = nullptr;
+  left._rbegin = right._rbegin = nullptr;
+  auto ll = left.treap, lr = ll, rl = right.treap, rr = rl;
+  while( ll != nullptr and ll->left != nullptr )  ll = ll->left;
+  while( lr != nullptr and lr->right != nullptr ) lr = lr->right;
+  while( rl != nullptr and rl->left != nullptr )  rl = rl->left;
+  while( rr != nullptr and rr->right != nullptr ) rr = rr->right;
+  if( rl != nullptr ) rl->prev = nullptr;
+  if( lr != nullptr ) lr->next = nullptr;
+  left._begin = ll, left._rbegin = lr, right._begin = rl, right._rbegin = rr;
 }
 
 

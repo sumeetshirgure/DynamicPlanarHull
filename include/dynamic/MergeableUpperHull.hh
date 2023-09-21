@@ -9,12 +9,12 @@ class MergeableUpperHull : public HullTree<LineSegment<Field>> {
     find_upper_bridge<>(MergeableUpperHull const& left, MergeableUpperHull const& right);
 
   friend LineSegment<Field> merge_upper_hulls<>( MergeableUpperHull &merged,
-      MergeableUpperHull left, MergeableUpperHull right,
+      MergeableUpperHull &left, MergeableUpperHull &right,
       MergeableUpperHull &left_residual, MergeableUpperHull &right_residual);
 
   friend void split_upper_hulls<>(LineSegment<Field> const& bridge, MergeableUpperHull &merged,
       MergeableUpperHull &left, MergeableUpperHull &right,
-      MergeableUpperHull left_residual, MergeableUpperHull right_residual);
+      MergeableUpperHull &left_residual, MergeableUpperHull &right_residual);
 };
 
 
@@ -66,7 +66,7 @@ LineSegment<Field> find_upper_bridge(
 
 template<typename Field>
 LineSegment<Field> merge_upper_hulls(MergeableUpperHull<Field> &merged,
-    MergeableUpperHull<Field> left, MergeableUpperHull<Field> right,
+    MergeableUpperHull<Field> &left, MergeableUpperHull<Field> &right,
     MergeableUpperHull<Field> &left_residual, MergeableUpperHull<Field> &right_residual) {
   auto segment = find_upper_bridge<>(left, right);
   auto leftcut = [&segment](MergeableUpperHull<Field>::iterator const& it) -> bool
@@ -84,7 +84,7 @@ LineSegment<Field> merge_upper_hulls(MergeableUpperHull<Field> &merged,
 template<typename Field>
 void split_upper_hulls(LineSegment<Field> const& segment, MergeableUpperHull<Field> &merged,
     MergeableUpperHull<Field> &left, MergeableUpperHull<Field> &right,
-    MergeableUpperHull<Field> left_residual, MergeableUpperHull<Field> right_residual) {
+    MergeableUpperHull<Field> &left_residual, MergeableUpperHull<Field> &right_residual) {
   auto leftbridgecut = [&segment](MergeableUpperHull<Field>::iterator const& it) -> bool
   { return segment.u < it->v; };
   auto rightbridgecut = [&segment](MergeableUpperHull<Field>::iterator const& it) -> bool
@@ -92,10 +92,9 @@ void split_upper_hulls(LineSegment<Field> const& segment, MergeableUpperHull<Fie
   MergeableUpperHull<Field> bridge;
   MergeableUpperHull<Field>::cut(leftbridgecut, merged, left, right);
   MergeableUpperHull<Field>::cut(rightbridgecut, right, bridge, right);
-  // bridge.destroy(); // deallocate memory
+  bridge.destroy(); // deallocate memory
   MergeableUpperHull<Field>::join(left, left, left_residual);
   MergeableUpperHull<Field>::join(right, right_residual, right);
-  return;
 }
 
 template<typename Field>
