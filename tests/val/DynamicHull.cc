@@ -110,6 +110,50 @@ void test_val( std::vector< Point<T> > const& points )
     // assert(dynamic_hull.get_upper_hull_size() == upper_chain.size());
   };
 
+  iter = points.begin();
+  while( iter != points.end() )
+  {
+
+    auto const&point = *iter++;
+
+    // test_extremes(point, dynamic_hull, lower_chain, upper_chain);
+
+    polygon.erase(std::find(polygon.begin(), polygon.end(), point));
+
+    tie(lower_chain, upper_chain) = convex_hull(polygon, false, false);
+    dynamic_hull.remove_point(point);
+
+    if( polygon.size() < 3 ) continue;
+
+    std::cout << "(" << std::setw(6) << polygon.size() << "/"
+      << std::setw(6) << points.size() << ") ["
+      << std::setw(6) << (lower_chain.size() + upper_chain.size() - 2) << " ] "
+      << std::setw(6) << dynamic_hull.get_hull_size() << "]\r";
+
+    auto print_point = [](LineSegment<int64_t> const&seg) { std::cout << "#" << to_string(seg) << "#, "; };
+
+    // dynamic_hull.traverse_upper_hull(print_point); std::cout << "upper done." << std::endl;
+    // for(auto pt: upper_chain) std::cout << "@" << to_string(pt) << "@, "; std::cout << "upper done." << std::endl;
+
+    // dynamic_hull.traverse_lower_hull(print_point); std::cout << "lower done." << std::endl;
+    // for(auto pt: lower_chain) std::cout << "@" << to_string(pt) << "@, "; std::cout << "lower done." << std::endl;
+
+
+    auto upper_chain_iterator = upper_chain.begin();
+    auto check_upper_chain = [&upper_chain_iterator](LineSegment< int64_t > const&seg) { assert(seg.v == *(++upper_chain_iterator)); };
+
+    auto lower_chain_iterator = lower_chain.begin();
+    auto check_lower_chain = [&lower_chain_iterator](LineSegment< int64_t > const&seg) { assert(seg.u == *lower_chain_iterator++); };
+    dynamic_hull.traverse_lower_hull(check_lower_chain);
+    dynamic_hull.traverse_upper_hull(check_upper_chain);
+
+    // assert(lower_chain_iterator == lower_chain.end());
+    // assert(upper_chain_iterator == upper_chain.end());
+
+    // assert(dynamic_hull.get_lower_hull_size() == lower_chain.size());
+    // assert(dynamic_hull.get_upper_hull_size() == upper_chain.size());
+  };
+
 }
 
 
