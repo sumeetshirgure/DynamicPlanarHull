@@ -309,3 +309,66 @@ template<typename Field>
 DynamicHull<Field>::size_t DynamicHull<Field>::get_num_points() const {
   return _leaves;
 }
+
+/******************************************************************************/
+/******Point in polygon, tangent and farthes point queries.********************/
+/******************************************************************************/
+
+template<typename Field>
+bool DynamicHull<Field>::point_in_polygon(Point<Field> const& point) {
+  auto const& lower_hull = master_root->lower_hull();
+  auto const& upper_hull = master_root->upper_hull();
+
+  auto const lower_segment = lower_hull.binary_search(
+      [&](lower_hull_t::iterator const& seg) { return point < seg->v; });
+  auto const upper_segment = upper_hull.binary_search(
+      [&](lower_hull_t::iterator const& seg) { return point < seg->v; });
+
+  if( lower_segment == lower_hull.end() or upper_segment == upper_hull.end() )
+    return false;
+
+  bool lower_enclosed = 
+    (lower_segment->v - lower_segment->u) * (point - lower_segment->u) >= 0;
+  bool upper_enclosed = 
+    (upper_segment->v - upper_segment->u) * (point - upper_segment->u) <= 0;
+
+  return lower_enclosed and upper_enclosed;
+}
+
+template<typename Field>
+std::optional< std::pair< Point<Field>, Point<Field> > >
+DynamicHull<Field>::get_tangents (Point<Field> const& point) const {
+  if( get_hull_size() <= 2 ) {
+    auto ret = *(master_root->lower_hull().begin());
+    return {{ret.u, ret.v}};
+  }
+  auto const& lower_hull = master_root->lower_hull();
+  auto const& upper_hull = master_root->upper_hull();
+
+  auto const lower_segment = lower_hull.binary_search(
+      [&](lower_hull_t::iterator const& seg) { return point < seg->v; });
+  auto const upper_segment = upper_hull.binary_search(
+      [&](lower_hull_t::iterator const& seg) { return point < seg->v; });
+
+  if( lower_segment == lower_hull.end() or upper_segment == upper_hull.end() )
+    return {};
+
+  bool lower_enclosed = 
+    (lower_segment->v - lower_segment->u) * (point - lower_segment->u) > 0;
+  bool upper_enclosed = 
+    (upper_segment->v - upper_segment->u) * (point - upper_segment->u) < 0;
+
+  if( lower_enclosed and upper_enclosed ) return {}; // point strictly inside polygon
+
+  if( point < (lower_hull.begin()->u) or (lower_hull.rbegin()->v) < point ) {
+  }
+
+};
+
+template<typename Field>
+std::pair< Point<Field>, Point<Field> >
+DynamicHull<Field>::get_extremal_points (Point<Field> const& direction) const {
+  return {direction, direction};
+};
+
+

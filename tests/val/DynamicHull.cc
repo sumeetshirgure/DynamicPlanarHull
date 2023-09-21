@@ -29,14 +29,16 @@ void test_extremes(
   if( polygon.size() < 3 )
     return;
 
-  auto [outside, tangents] = get_tangents(point, polygon);
-  auto [test_outside, test_tangents] = dynamic_hull.get_tangents(point);
+  auto [outside, test_tangents] = get_tangents(point, polygon);
+  auto test_outside  = dynamic_hull.point_in_polygon(point);
 
   assert(outside == test_outside);
-  if( outside )
-  {
-    assert(tangents.first == test_tangents.first);
-    assert(tangents.second == test_tangents.second);
+
+  auto tangents = dynamic_hull.get_tangents(point);
+
+  if( tangents != std::nullopt ) {
+    assert(tangents->first == test_tangents.first);
+    assert(tangents->second == test_tangents.second);
   }
 
   static int const n_points = 1000;
@@ -116,7 +118,7 @@ void test_val( std::vector< Point<T> > const& points )
 
     auto const&point = *iter++;
 
-    // test_extremes(point, dynamic_hull, lower_chain, upper_chain);
+    test_extremes(point, dynamic_hull, lower_chain, upper_chain);
 
     polygon.erase(std::find(polygon.begin(), polygon.end(), point));
 

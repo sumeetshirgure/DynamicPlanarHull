@@ -23,7 +23,7 @@ class HullTree {
   template<typename Predicate>
     static void cut(const Predicate&, HullTree, HullTree&, HullTree&);
 
-  template<typename Predicate> iterator binary_search(Predicate const&);
+  template<typename Predicate> iterator binary_search(Predicate const&) const;
 
   static void join(HullTree&, HullTree, HullTree);
 
@@ -243,7 +243,8 @@ void HullTree<Element>::join(HullTree &to, HullTree left, HullTree right) {
 
 template<typename Element>
 template<typename Predicate>
-HullTree<Element>::iterator HullTree<Element>::binary_search(Predicate const& predicate) {
+HullTree<Element>::iterator 
+HullTree<Element>::binary_search(Predicate const& predicate) const {
   HullTree<Element>::TreapNode *ptr = treap, *ret = nullptr;
   while(ptr != nullptr) {
     if( predicate(iterator(ptr)) ) ret = ptr, ptr = ptr->left;
