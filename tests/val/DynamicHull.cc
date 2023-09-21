@@ -101,7 +101,7 @@ void test_val( std::vector< Point<T> > const& points )
     auto lower_chain_iterator = lower_chain.begin();
     auto check_lower_chain = [&lower_chain_iterator](LineSegment< int64_t > const&seg) { assert(seg.u == *lower_chain_iterator++); };
     dynamic_hull.traverse_lower_hull(check_lower_chain);
-    // dynamic_hull.traverse_upper_hull(check_upper_chain);
+    dynamic_hull.traverse_upper_hull(check_upper_chain);
 
     // assert(lower_chain_iterator == lower_chain.end());
     // assert(upper_chain_iterator == upper_chain.end());

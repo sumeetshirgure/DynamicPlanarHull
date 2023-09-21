@@ -28,7 +28,7 @@ LineSegment<Field> find_upper_bridge(
 
   auto ccw = [](Point<Field> const& pivot,
       Point<Field> const&first, Point<Field> const& second)
-  { return ((first - pivot) * (second - pivot)) > 0; };
+  { return ((first - pivot) * (second - pivot)) >= 0; };
 
   auto lseg = left_cur.u != left_cur.v, rseg = right_cur.u != right_cur.v;
   while( lseg or rseg ) {
@@ -51,7 +51,7 @@ LineSegment<Field> find_upper_bridge(
       auto lhs = dr.x * (dl.x * left_cur.u.y + tlx * dl.y),
            rhs = dl.x * (dr.x * right_cur.v.y + trx * dr.y);
       if( dr.x * dl.x <= 0 ) lhs = -lhs, rhs = -rhs;
-      if( lhs >= rhs ) {
+      if( lhs > rhs ) { // don't change this to equality
         lpt = lpt->right;
         if( lpt == nullptr ) left_cur.u = left_cur.v; else left_cur = lpt->element;
       } else {
