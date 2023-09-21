@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 
+#include "HullTree.hh"
 #include "MergeableLowerHull.hh"
 #include "MergeableUpperHull.hh"
 
@@ -17,8 +18,9 @@ class DynamicHull {
     using size_t = int32_t;
     using priority_t = int32_t;
 
-    DynamicHull();
-    ~DynamicHull();
+    using lower_hull_t = MergeableLowerHull<Field>;
+    using upper_hull_t = MergeableUpperHull<Field>;
+
 
     void add_point(Point<Field> const&);
     bool remove_point(Point<Field> const&);
@@ -47,17 +49,20 @@ class DynamicHull {
 
     template<typename TotalOrder> class TreapNode {
       public:
+        inline virtual lower_hull_t& lower_hull() = 0;
+        inline virtual upper_hull_t& upper_hull() = 0;
         inline virtual bool is_leaf() const = 0;
         inline virtual DynamicHull::priority_t priority() const = 0;
         inline virtual TotalOrder lo() const = 0;
         inline virtual TotalOrder hi() const = 0;
-        // inline virtual ~TreapNode();
     };
 
     TreapNode < Point<Field> > * master_root = nullptr;
 
     template<typename TotalOrder> class TreapLeaf : public TreapNode<TotalOrder> {
       TotalOrder point;
+      lower_hull_t _lower_hull;
+      upper_hull_t _upper_hull;
       public:
       inline bool is_leaf() const { return true; }
       inline DynamicHull::priority_t priority() const { return -1; }
@@ -65,37 +70,74 @@ class DynamicHull {
       inline TotalOrder hi() const { return point; }
       void set_point(TotalOrder const& _point) { point = _point; }
 
+      inline lower_hull_t& lower_hull() { return _lower_hull; }
+      inline upper_hull_t& upper_hull() { return _upper_hull; }
+
       TreapLeaf(const TotalOrder& _point) : point(_point) { 
-        std::cerr << "Created point " << point << std::endl;
+        std::cerr << "Created point " << to_string(point) << std::endl;
+        _lower_hull = MergeableLowerHull<Field>(LineSegment<Field>{point, point});
+        _upper_hull = MergeableUpperHull<Field>(LineSegment<Field>{point, point});
       }
       ~TreapLeaf() {
-        std::cerr << "Deleted point " << point << std::endl;
+        std::cerr << "Deleted point " << to_string(point) << std::endl;
+        // _lower_hull.destroy(), _upper_hull.destroy();
       }
     };
 
     template<typename TotalOrder> class TreapBranch : public TreapNode<TotalOrder> {
       DynamicHull::priority_t _priority = rng(engine);
       TotalOrder _lo, _hi;
+      lower_hull_t _lower_hull, lower_left_residue, lower_right_residue;
+      upper_hull_t _upper_hull, upper_left_residue, upper_right_residue;
+      LineSegment<Field> lower_bridge, upper_bridge;
+      bool merged = false;
       public:
       TreapNode<TotalOrder> *left = nullptr, *right = nullptr;
       bool is_leaf() const { return false; }
-      inline TreapNode<TotalOrder>::priority_t priority() const { return _priority; }
+      inline DynamicHull::priority_t priority() const { return _priority; }
+      inline TotalOrder lo() const { return _lo; }
       inline TotalOrder hi() const { return _hi; }
+      inline lower_hull_t& lower_hull() { return _lower_hull; }
+      inline upper_hull_t& upper_hull() { return _upper_hull; }
       inline void pull() {
-        assert(left != nullptr and right != nullptr);
+        // assert(left != nullptr and right != nullptr);
         _lo = left->lo(), _hi = right->hi();
-        std::cerr << "Pulled branch " << priority() << " " << _lo << " " << _hi << std::endl;
+        std::cerr << "Pulled branch " << priority() 
+          << " " << to_string(_lo) << " " << to_string(_hi) << std::endl;
+
+        assert(!merged);
+        if( left->is_leaf() ) std::cerr << "Left Leaf" << std::endl;
+        if( right->is_leaf() ) std::cerr << "Right leaf" << std::endl;
+
+        lower_bridge = merge_lower_hulls(lower_hull(),
+            left->lower_hull(), right->lower_hull(),
+            lower_left_residue, lower_right_residue);
+
+        upper_bridge = merge_upper_hulls(upper_hull(),
+            left->upper_hull(), right->upper_hull(),
+            upper_left_residue, upper_right_residue);
+
+        merged = true;
       }
       void push() {
-        assert(left != nullptr and right != nullptr);
-        std::cerr << "Pushed branch " << priority() << " " << _lo << " " << _hi << std::endl;
-      }
-      inline TotalOrder lo() const { return _lo; }
-      TreapBranch() {
-        std::cerr << "Created branch " << priority() << std::endl;
-      }
-      ~TreapBranch() {
-        std::cerr << "Deleted branch " << priority() << " " << _lo << " " << _hi << std::endl;
+        // assert(left != nullptr and right != nullptr);
+        std::cerr << "Pushed branch " << priority() 
+          << " " << to_string(_lo) << " " << to_string(_hi) << std::endl;
+
+        assert(merged);
+
+        if( left->is_leaf() ) std::cerr << "!Left Leaf" << std::endl;
+        if( right->is_leaf() ) std::cerr << "!Right leaf" << std::endl;
+
+        split_lower_hulls(lower_bridge, lower_hull(),
+            left->lower_hull(), right->lower_hull(),
+            lower_left_residue, lower_left_residue);
+
+        split_upper_hulls(upper_bridge, upper_hull(),
+            left->upper_hull(), right->upper_hull(),
+            upper_left_residue, upper_right_residue);
+
+        merged = false;
       }
     };
 
@@ -229,14 +271,33 @@ class DynamicHull {
 
 };
 
+template<typename Field>
+std::default_random_engine DynamicHull<Field>::engine;
+template<typename Field>
+std::uniform_int_distribution< int32_t > DynamicHull<Field>::rng;
 
 template<typename Field>
-void DynamicHull<Field>::add_point(Point<Field> const&) {
+void DynamicHull<Field>::add_point(Point<Field> const& point) {
+  insert(point, master_root);
 }
 
 template<typename Field>
-bool DynamicHull<Field>::remove_point(Point<Field> const&) {
-  return false;
+bool DynamicHull<Field>::remove_point(Point<Field> const& point) {
+  return remove(point, master_root);
+}
+
+template<typename Field>
+DynamicHull<Field>::size_t DynamicHull<Field>::get_lower_hull_size() const {
+  return master_root == nullptr ? 0 : master_root->lower_hull().get_size();
+}
+
+template<typename Field>
+DynamicHull<Field>::size_t DynamicHull<Field>::get_upper_hull_size() const {
+  return master_root == nullptr ? 0 : master_root->upper_hull().get_size();
 }
 
 
+template<typename Field>
+DynamicHull<Field>::size_t DynamicHull<Field>::get_hull_size() const {
+  return get_lower_hull_size() + get_upper_hull_size();
+}

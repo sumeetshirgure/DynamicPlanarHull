@@ -29,13 +29,16 @@ class HullTree {
 
   HullTree();
   HullTree(Element const&);
-  ~HullTree();
 
   inline iterator const begin() const;
   inline iterator const end() const;
 
   inline reverse_iterator const rbegin() const;
   inline reverse_iterator const rend()  const;
+
+  size_t get_size();
+
+  void destroy();
 
   protected:
   static std::default_random_engine engine;
@@ -51,8 +54,6 @@ class HullTree {
 
   iterator _begin{nullptr}, _end{nullptr};
   reverse_iterator _rbegin{nullptr}, _rend{nullptr};
-
-  void erase(TreapNode *&);
 
 };
 
@@ -142,6 +143,8 @@ struct HullTree<Element>::TreapNode {
 
   Element element;
 
+  HullTree<Element>::size_t size;
+
   TreapNode(Element const &_element):
     priority(rng(engine)), element(_element) { }
 };
@@ -157,13 +160,16 @@ HullTree<Element>::HullTree(Element const& element) {
 }
 
 template<typename Element>
-void HullTree<Element>::erase(HullTree<Element>::TreapNode *& node) {
-  if( _begin == nullptr ) return;
-
+void HullTree<Element>::destroy() {
+  TreapNode* it = treap;
+  if( it == nullptr ) return;
+  std::cerr << "Destroying " << to_string(it->element) << std::endl;
+  while( it->left != nullptr ) it = it->left;
+  while( it != nullptr ) {
+    auto prev = it; ++it;
+    delete prev;
+  }
 }
-
-template<typename Element>
-HullTree<Element>::~HullTree() { erase(treap), treap = nullptr; }
 
 
 template<typename Element>
@@ -179,6 +185,8 @@ void HullTree<Element>::__cut(const Predicate &predicate,
     __cut(predicate, treap_root->right, treap_root->right, right_root);
     left_root = treap_root;
   }
+  treap_root->size = 1 + (treap_root->left == nullptr ? 0 : treap_root->left->size) +
+    (treap_root->right == nullptr ? 0 : treap_root->right->size);
 }
 
 template<typename Element>
@@ -208,6 +216,8 @@ void HullTree<Element>::__join(
     __join(left_root->right, left_root->right, right_root);
     root = left_root;
   }
+  root->size = 1 + (root->left == nullptr ? 0 : root->left->size) +
+    (root->right == nullptr ? 0 : root->right->size);
 }
 
 template<typename Element>
@@ -235,3 +245,8 @@ HullTree<Element>::iterator HullTree<Element>::binary_search(Predicate const& pr
   return iterator(ret);
 }
 
+
+template<typename Element>
+HullTree<Element>::size_t HullTree<Element>::get_size() {
+  return (treap == nullptr ? 0 : treap->size);
+}

@@ -13,7 +13,7 @@ bin/online/test_perf:
 	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/perf/online/AddPoint.cc
 
 bin/dynamic/test_perf:
-	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/perf/dynamic/AddPoint.cc
+	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/perf/dynamic/AddRemovePoint.cc
 
 bin/test_convex_hull:
 	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/val/ConvexHull.cc

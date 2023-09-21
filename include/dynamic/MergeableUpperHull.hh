@@ -12,7 +12,7 @@ class MergeableUpperHull : public HullTree<LineSegment<Field>> {
       MergeableUpperHull left, MergeableUpperHull right,
       MergeableUpperHull &left_residual, MergeableUpperHull &right_residual);
 
-  friend void split_upper_hulls<>(LineSegment<Field> bridge, MergeableUpperHull merged,
+  friend void split_upper_hulls<>(LineSegment<Field> const& bridge, MergeableUpperHull &merged,
       MergeableUpperHull &left, MergeableUpperHull &right,
       MergeableUpperHull left_residual, MergeableUpperHull right_residual);
 };
@@ -82,19 +82,19 @@ LineSegment<Field> merge_upper_hulls(MergeableUpperHull<Field> &merged,
 
 
 template<typename Field>
-void split_upper_hulls(LineSegment<Field> segment, MergeableUpperHull<Field> merged,
+void split_upper_hulls(LineSegment<Field> const& segment, MergeableUpperHull<Field> &merged,
     MergeableUpperHull<Field> &left, MergeableUpperHull<Field> &right,
     MergeableUpperHull<Field> left_residual, MergeableUpperHull<Field> right_residual) {
   auto leftbridgecut = [&segment](MergeableUpperHull<Field>::iterator const& it) -> bool
-  { return it->v > segment.u; };
+  { return segment.u < it->v; };
   auto rightbridgecut = [&segment](MergeableUpperHull<Field>::iterator const& it) -> bool
-  { return it->v > segment.v; };
+  { return segment.v < it->v; };
   MergeableUpperHull<Field> bridge;
-  cut(leftbridgecut, merged, left, right);
-  cut(rightbridgecut, right, bridge, right);
-  bridge.erase();
-  join(left, left, left_residual);
-  join(right, right_residual, right);
+  MergeableUpperHull<Field>::cut(leftbridgecut, merged, left, right);
+  MergeableUpperHull<Field>::cut(rightbridgecut, right, bridge, right);
+  // bridge.destroy(); // deallocate memory
+  MergeableUpperHull<Field>::join(left, left, left_residual);
+  MergeableUpperHull<Field>::join(right, right_residual, right);
   return;
 }
 
