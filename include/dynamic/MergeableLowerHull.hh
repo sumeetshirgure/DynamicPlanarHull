@@ -66,7 +66,6 @@ LineSegment<Field> find_lower_bridge(
   return LineSegment(left_cur.u, right_cur.u);
 }
 
-#define pr(v) for(auto const&seg: v) std::cerr<<to_string(seg)<<" ";
 
 template<typename Field>
 LineSegment<Field> merge_lower_hulls(MergeableLowerHull<Field> &merged,
@@ -74,7 +73,7 @@ LineSegment<Field> merge_lower_hulls(MergeableLowerHull<Field> &merged,
     MergeableLowerHull<Field> &left_residual, MergeableLowerHull<Field> &right_residual) {
   auto bridge = find_lower_bridge(left, right);
   MergeableLowerHull<Field>::cut( [&](MergeableLowerHull<Field>::iterator const&it)
-      { return not (it->v < bridge.u);}, left, left, left_residual);
+      { return not (it->u < bridge.u);}, left, left, left_residual);
   MergeableLowerHull<Field>::cut( [&](MergeableLowerHull<Field>::iterator const&it)
       { return bridge.v < it->v; }, right, right_residual, right);
   MergeableLowerHull<Field>::join(merged, left, MergeableLowerHull<Field>(bridge));
@@ -92,7 +91,7 @@ void split_lower_hulls(LineSegment<Field> const& bridge, MergeableLowerHull<Fiel
       { return bridge.v < it->v; }, merged, left, right);
   MergeableLowerHull<Field>::cut( [&](MergeableLowerHull<Field>::iterator const&it)
       { return bridge.u < it->v; }, left, left, bt);
-  assert(bt.get_size() == 1 and *(bt._begin)==bridge);
+  assert(bt.get_size() == 0 or bt.get_size() == 1 and *(bt._begin)==bridge);
   bt.destroy(); // deallocate memory
   MergeableLowerHull<Field>::join(left, left, left_residual);
   MergeableLowerHull<Field>::join(right, right_residual, right);
@@ -109,5 +108,3 @@ bool is_convex(MergeableLowerHull<Field> const& seq) {
   }
   return true;
 };
-
-

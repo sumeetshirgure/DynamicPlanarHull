@@ -23,6 +23,10 @@ std::vector< Point<Integer> > random_int_test(size_t n_points, Integer const& ra
 
 	std::vector< Point<Integer> > points(n_points);
 	std::generate(points.begin(), points.end(), generate_random_point);
+        std::sort(points.begin(), points.end());
+        points.erase(std::unique(points.begin(), points.end()), points.end());
+	auto seed = 42; // std::chrono::system_clock::now().time_since_epoch().count();
+	std::shuffle(points.begin(), points.end(), std::default_random_engine(seed));
 
 	return points;
 }
@@ -42,6 +46,8 @@ random_circle_int_test(int32_t n_points, Integer radius, bool spiral = false)
 		);
 	}
 
+        std::sort(points.begin(), points.end());
+        points.erase(std::unique(points.begin(), points.end()), points.end());
 	auto seed = 42; // std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle(points.begin(), points.end(), std::default_random_engine(seed));
 

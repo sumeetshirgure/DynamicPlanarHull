@@ -76,32 +76,31 @@ void test_val( std::vector< Point<T> > const& points )
     polygon.insert(
         std::lower_bound(polygon.begin(), polygon.end(), point), point);
 
-    tie(lower_chain, upper_chain) = convex_hull(polygon, true);
+    tie(lower_chain, upper_chain) = convex_hull(polygon, false, false);
     dynamic_hull.add_point(point);
 
-    if( polygon.size() <= 2 ) continue;
+    if( polygon.size() < 3 ) continue;
 
     std::cout << "(" << std::setw(6) << polygon.size() << "/"
       << std::setw(6) << points.size() << ") ["
       << std::setw(6) << (lower_chain.size() + upper_chain.size() - 2) << " ] "
-      << std::setw(6) << dynamic_hull.get_hull_size() << std::endl;//  << "]\r";
+      << std::setw(6) << dynamic_hull.get_hull_size() << "]\r";
 
-    auto print_point = [](LineSegment<int64_t> const&seg)
-    { std::cout << "#" << to_string(seg) << "#, "; };
-    dynamic_hull.traverse_lower_hull(print_point); std::cout << "lower done." << std::endl;
+    auto print_point = [](LineSegment<int64_t> const&seg) { std::cout << "#" << to_string(seg) << "#, "; };
 
     // dynamic_hull.traverse_upper_hull(print_point); std::cout << "upper done." << std::endl;
-
-    for(auto pt: lower_chain) std::cout << "@" << to_string(pt) << "@, "; std::cout << "lower done." << std::endl;
-
     // for(auto pt: upper_chain) std::cout << "@" << to_string(pt) << "@, "; std::cout << "upper done." << std::endl;
+
+    // dynamic_hull.traverse_lower_hull(print_point); std::cout << "lower done." << std::endl;
+    // for(auto pt: lower_chain) std::cout << "@" << to_string(pt) << "@, "; std::cout << "lower done." << std::endl;
+
+
+    auto upper_chain_iterator = upper_chain.begin();
+    auto check_upper_chain = [&upper_chain_iterator](LineSegment< int64_t > const&seg) { assert(seg.v == *(++upper_chain_iterator)); };
 
     auto lower_chain_iterator = lower_chain.begin();
     auto check_lower_chain = [&lower_chain_iterator](LineSegment< int64_t > const&seg) { assert(seg.u == *lower_chain_iterator++); };
     dynamic_hull.traverse_lower_hull(check_lower_chain);
-
-    // auto upper_chain_iterator = upper_chain.begin();
-    // auto check_upper_chain = [&upper_chain_iterator](Point< int64_t > const&point) { assert(point == *(++upper_chain_iterator)); };
     // dynamic_hull.traverse_upper_hull(check_upper_chain);
 
     // assert(lower_chain_iterator == lower_chain.end());
@@ -124,9 +123,13 @@ int main()
     100, 100, 100, 100, 100,
     500, 500, 500, 500, 500,
     1000, 1000, 1000,
-    2000, 2000, 2000 };
+    2000, 2000, 2000,
+    2500, 2500, 2500,
+    3500, 3500, 3500,
+    5000, 5000, 5000
+  };
 
-  for(size_t n_points: small_sizes)
+  for(size_t n_points: sizes)
   {
     {
       auto random_test = random_int_test<int64_t>(n_points, 100);
