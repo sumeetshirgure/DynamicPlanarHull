@@ -1,24 +1,28 @@
 CXX=g++
-CXXFLAGS=-std=c++17 -g
+CXXFLAGS=-std=c++20 -g
 
 .PHONY: all clean
 
-all: bin bin/test_convex_hull bin/test_dynamic_hull bin/test_monotone_hull bin/test_perf
+all: DIR bin/val_convex_hull bin/online/val bin/dynamic/val bin/online/test_perf bin/dynamic/test_perf
 
-bin:
+DIR:
 	mkdir -p ./bin
+	mkdir -p ./bin/online ./bin/dynamic
 
-bin/test_perf: tests/perf/AddPoint.cc include/Point.hh include/DynamicHull.hh include/TestGenerator.hh
-	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/perf/AddPoint.cc
+bin/online/test_perf:
+	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/perf/online/AddPoint.cc
 
-bin/test_convex_hull: tests/val/ConvexHull.cc include/Point.hh include/ConvexHull.hh
+bin/dynamic/test_perf:
+	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/perf/dynamic/AddRemovePoint.cc
+
+bin/val_convex_hull:
 	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/val/ConvexHull.cc
 
-bin/test_monotone_hull: tests/val/MonotoneHull.cc include/Point.hh include/ConvexHull.hh  include/MonotoneHull.hh
-	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/val/MonotoneHull.cc
+bin/online/val:
+	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/val/OnlineHull.cc
 
-bin/test_dynamic_hull: tests/val/DynamicHull.cc include/Point.hh include/DynamicHull.hh include/Tangent.hh
+bin/dynamic/val:
 	$(CXX) $(CXXFLAGS) -Iinclude -o $@ tests/val/DynamicHull.cc
 
 clean :
-	rm -f bin/*
+	rm -rvf bin/*

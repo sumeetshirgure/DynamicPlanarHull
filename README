@@ -1,9 +1,0 @@
-C++ implementation of an optimal real time incremental planar convex hull construction algorithm.
-This is part of a term project in Computational Geometry, IIT Kharagpur Spring 2020.
-
-Supports online construction in real time of the convex hull of a set of n points on the plane. Also answers point location queries, extremal direction queries, and tangent queries. All operations are performed in expected O(log(n)) time.
-(The expected time complexity comes from the fact that a randomised binary search tree ("treap") has been used for simplicity of implementation. It could easily be made worst-case O(log(n)) by choosing strictly self balancing BSTs like AVL / Red-Black trees instead, which support similar height balanced split / join operations while preserving the key order.)
-
-This implementation uses an idea presented in [1] of storing enough information in the tree node itself to guide the binary search, but simplifies some of the case analysis by maintaining two sequences (and hence trees) corresponding to the "lower hull" and the "upper hull" of the set of points inserted into the hull. See implementation reference (part of our term paper) attached in notes for details.
-
-[1] F. P. Preparata. 1979. An optimal real-time algorithm for planar convex hulls. Commun. ACM 22, 7 (July 1979), 402–405. DOI:https://doi.org/10.1145/359131.359132

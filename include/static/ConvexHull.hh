@@ -6,7 +6,7 @@
 using std::vector;
 using std::pair;
 
-#include "Point.hh"
+#include "util/Point.hh"
 
 template<typename T> using Chain = vector< Point<T> >;
 
@@ -16,12 +16,12 @@ template<typename T> using Chain = vector< Point<T> >;
 */
 template<typename T>
 pair< Chain<T>, Chain<T> > convex_hull
-(vector< Point <T> > polygon, bool sorted = true)
+(vector< Point <T> > polygon, bool sorted = true, bool collinear = false)
 {
 
 	if( not sorted )
 	{
-		sort(polygon.begin(), polygon.end()); // sort lexicographically
+		sort(polygon.begin(), polygon.end()); // sort lexicographically 
 	}
 
 	if( polygon.size() <= 1 )
@@ -41,7 +41,9 @@ pair< Chain<T>, Chain<T> > convex_hull
 			auto first_segment = lower_chain[lower_chain.size()-1] -
 				lower_chain[lower_chain.size()-2];
 			auto second_segment = point - lower_chain[lower_chain.size()-1];
-			if( first_segment * second_segment <= 0 )
+			if( (not collinear and first_segment * second_segment <= 0)
+                            or (collinear and first_segment * second_segment < 0)
+                            )
 				lower_chain.pop_back();
 			else
 				break;
@@ -53,7 +55,8 @@ pair< Chain<T>, Chain<T> > convex_hull
 			auto first_segment = upper_chain[upper_chain.size()-1] -
 				upper_chain[upper_chain.size()-2];
 			auto second_segment = point - upper_chain[upper_chain.size()-1];
-			if( first_segment * second_segment >= 0 )
+			if( (not collinear and first_segment * second_segment >= 0)
+                            or(collinear and first_segment * second_segment > 0) )
 				upper_chain.pop_back();
 			else
 				break;

@@ -1,9 +1,9 @@
-#include "Point.hh"
-#include "ConvexHull.hh"
-#include "DynamicHull.hh"
-#include "Tangent.hh"
+#include "util/Point.hh"
+#include "util/Tangent.hh"
+#include "util/TestGenerator.hh"
+#include "static/ConvexHull.hh"
+#include "online/OnlineHull.hh"
 
-#include "TestGenerator.hh"
 
 #include <iostream>
 #include <iomanip>
@@ -20,7 +20,7 @@ void test_perf( std::vector< Point<Field> > const& points )
 
 	auto const&first_point = *iter++;
 	auto const&second_point = *iter++;
-	DynamicHull< Field > dynamic_hull(first_point, second_point);
+	OnlineHull< Field > dynamic_hull(first_point, second_point);
 
 	while( iter != points.end() )
 	{
@@ -28,9 +28,7 @@ void test_perf( std::vector< Point<Field> > const& points )
 		auto const&point = *iter++;
 
 		/* Get hull sizes. */
-		auto lower_hull_size = dynamic_hull.get_lower_hull_size();
-		auto upper_hull_size = dynamic_hull.get_upper_hull_size();
-
+		auto hull_size = dynamic_hull.get_hull_size();
 		/* Check time. */
 		auto tick = std::chrono::high_resolution_clock::now();
 
@@ -41,8 +39,7 @@ void test_perf( std::vector< Point<Field> > const& points )
 		auto runtime = std::chrono::duration_cast
 			<std::chrono::nanoseconds>(tock - tick).count();
 
-		std::cout << lower_hull_size + upper_hull_size - 2
-			<< ':' << runtime << '\n';
+		std::cout << hull_size << ':' << runtime << '\n';
 	};
 }
 

@@ -18,6 +18,9 @@ template<typename T> struct Point
 template<typename T> Point<T> operator+(const Point<T>&p, const Point<T>&q)
 { return Point<T>(p.x+q.x, p.y+q.y); }
 
+template<typename T> Point<T> operator-(const Point<T>&p)
+{ return Point<T>(-p.x, -p.y); }
+
 template<typename T> Point<T> operator-(const Point<T>&p, const Point<T>&q)
 { return Point<T>(p.x-q.x, p.y-q.y); }
 
@@ -46,6 +49,4 @@ template<typename T> inline bool operator==(const Point<T>&p, const Point<T>&q)
 { return (p.x == q.x) and (p.y == q.y); }
 
 template<typename T> std::string to_string(const Point<T>&p)
-{
-	return "(" + std::to_string(p.x) + ", " + std::to_string(p.y) + ")";
-};
+{ return "(" + std::to_string(p.x) + ", " + std::to_string(p.y) + ")"; };
