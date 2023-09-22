@@ -24,9 +24,10 @@ In the online setting, we have a stream of point insertion and deletion queries,
 the hull without discarding any of the points in the interior.
 Notably there exist real time algorithms with logarithmic complexity, but they tend to have bad constants in practice.
 
-This implementation uses ideas presented in the book [2] and the [3] and answers queries in a time proportional to the square of the logarithm
-of the total number of points, regardless of the size of the hull.
+This implementation uses ideas presented in the book [2] and the blog post in [3] and answers queries in a time
+proportional to the square of the logarithm of the total number of points, regardless of the size of the hull.
 Please see the notebook in notes/dynamic for performace tests.
+I will write a paper documenting the library soon.
 
 [2] "Computational Geometry - An Introduction." Franco P. Preparata, Michael Ian Shamos (1985) DOI:https://doi.org/10.1007/978-1-4612-1098-6
 
