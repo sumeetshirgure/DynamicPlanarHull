@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-std=c++20 -g
+CXXFLAGS=-std=c++20
 
 .PHONY: all clean
 
