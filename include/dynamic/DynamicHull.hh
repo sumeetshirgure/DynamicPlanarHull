@@ -1,9 +1,9 @@
-
 #pragma once
 
 #include <optional>
 #include <vector>
 #include <iostream>
+#include <cassert>
 
 #include "HullTree.hh"
 #include "MergeableLowerHull.hh"
@@ -76,12 +76,10 @@ class DynamicHull {
       inline upper_hull_t& upper_hull() { return _upper_hull; }
 
       TreapLeaf(const TotalOrder& _point) : point(_point) { 
-        // std::cerr << "Created point " << to_string(point) << std::endl;
         _lower_hull = MergeableLowerHull<Field>(LineSegment<Field>{point, point});
         _upper_hull = MergeableUpperHull<Field>(LineSegment<Field>{point, point});
       }
       ~TreapLeaf() {
-        // std::cerr << "Deleted point " << to_string(point) << std::endl;
         _lower_hull.destroy(), _upper_hull.destroy();
       }
     };
@@ -92,7 +90,6 @@ class DynamicHull {
       lower_hull_t _lower_hull, lower_left_residue, lower_right_residue;
       upper_hull_t _upper_hull, upper_left_residue, upper_right_residue;
       LineSegment<Field> lower_bridge, upper_bridge;
-      // bool merged = false;
       public:
       TreapNode<TotalOrder> *left = nullptr, *right = nullptr;
       bool is_leaf() const { return false; }
@@ -103,8 +100,6 @@ class DynamicHull {
       inline upper_hull_t& upper_hull() { return _upper_hull; }
       inline void pull() {
         _lo = left->lo(), _hi = right->hi();
-        //std::cerr << "Pulled branch " << priority() 
-        //  << " " << to_string(_lo) << " " << to_string(_hi) << std::endl;
 
         lower_bridge = merge_lower_hulls(lower_hull(),
             left->lower_hull(), right->lower_hull(),
@@ -322,15 +317,12 @@ bool DynamicHull<Field>::point_in_polygon(Point<Field> const& point) {
   auto const lower_segment = lower_hull.binary_search(
       [&](lower_hull_t::iterator const& seg) { return point < seg->v; });
   auto const upper_segment = upper_hull.binary_search(
-      [&](lower_hull_t::iterator const& seg) { return point < seg->v; });
+      [&](upper_hull_t::iterator const& seg) { return point < seg->v; });
 
-  if( lower_segment == lower_hull.end() or upper_segment == upper_hull.end() )
-    return false;
-
-  bool lower_enclosed = 
-    (lower_segment->v - lower_segment->u) * (point - lower_segment->u) >= 0;
-  bool upper_enclosed = 
-    (upper_segment->v - upper_segment->u) * (point - upper_segment->u) <= 0;
+  bool lower_enclosed = lower_segment != lower_hull.end() and
+    (lower_segment->v - lower_segment->u) * (point - lower_segment->u) > 0;
+  bool upper_enclosed = upper_segment != upper_hull.end() and
+    (upper_segment->v - upper_segment->u) * (point - upper_segment->u) < 0;
 
   return lower_enclosed and upper_enclosed;
 }
@@ -345,30 +337,102 @@ DynamicHull<Field>::get_tangents (Point<Field> const& point) const {
   auto const& lower_hull = master_root->lower_hull();
   auto const& upper_hull = master_root->upper_hull();
 
-  auto const lower_segment = lower_hull.binary_search(
-      [&](lower_hull_t::iterator const& seg) { return point < seg->v; });
-  auto const upper_segment = upper_hull.binary_search(
-      [&](lower_hull_t::iterator const& seg) { return point < seg->v; });
+  auto first = lower_hull.begin()->u, last = upper_hull.rbegin()->v;
 
-  if( lower_segment == lower_hull.end() or upper_segment == upper_hull.end() )
-    return {};
+  if( point < first ) {
+    auto lower_segment = lower_hull.binary_search([&](lower_hull_t::iterator const& seg)
+        { return (seg->v-seg->u)*(point-seg->u) > 0;});
+    auto lower_tangent = lower_segment == lower_hull.end() ? last : lower_segment->u;
 
-  bool lower_enclosed = 
-    (lower_segment->v - lower_segment->u) * (point - lower_segment->u) > 0;
-  bool upper_enclosed = 
-    (upper_segment->v - upper_segment->u) * (point - upper_segment->u) < 0;
+    auto upper_segment = upper_hull.binary_search([&](upper_hull_t::iterator const& seg)
+        { return (seg->v-seg->u)*(point-seg->u) < 0;});
+    auto upper_tangent = upper_segment == upper_hull.end() ? last : upper_segment->u;
 
-  if( lower_enclosed and upper_enclosed ) return {}; // point strictly inside polygon
+    if( upper_tangent < lower_tangent ) std::swap(upper_tangent, lower_tangent);
+    return {{lower_tangent, upper_tangent}};
+  } else if( last < point ) {
+    auto lower_segment = lower_hull.binary_search([&](lower_hull_t::iterator const& seg)
+        { return (seg->v-seg->u)*(point-seg->u) <= 0;});
+    auto lower_tangent = lower_segment == lower_hull.end() ? last : lower_segment->u;
 
-  if( point < (lower_hull.begin()->u) or (lower_hull.rbegin()->v) < point ) {
+    auto upper_segment = upper_hull.binary_search([&](upper_hull_t::iterator const& seg)
+        { return (seg->v-seg->u)*(point-seg->u) >= 0;});
+    auto upper_tangent = upper_segment == upper_hull.end() ? last : upper_segment->u;
+
+    if( upper_tangent < lower_tangent ) std::swap(upper_tangent, lower_tangent);
+    return {{lower_tangent, upper_tangent}};
+  } else {
+    auto const lower_segment = lower_hull.binary_search(
+        [&](lower_hull_t::iterator const& seg) { return point < seg->v; });
+    auto const upper_segment = upper_hull.binary_search(
+        [&](upper_hull_t::iterator const& seg) { return point < seg->v; });
+
+    bool lower_enclosed = lower_segment != lower_hull.end() and
+      (lower_segment->v - lower_segment->u) * (point - lower_segment->u) > 0;
+    bool upper_enclosed = upper_segment != upper_hull.end() and
+      (upper_segment->v - upper_segment->u) * (point - upper_segment->u) < 0;
+
+    if( lower_enclosed and upper_enclosed ) return {};
+
+    if( lower_enclosed ) { // => not upper_enclosed
+      auto left_segment = upper_hull.binary_search(
+          [&](upper_hull_t::iterator const& seg)
+          { return point < seg->v or (seg->v-seg->u)*(point-seg->u) >= 0; });
+      auto left_tangent = left_segment == upper_hull.end() ? first : left_segment->u;
+
+      auto right_segment = upper_hull.binary_search(
+          [&](upper_hull_t::iterator const& seg)
+          { return point < seg->u and (seg->v-seg->u)*(point-seg->u) < 0; });
+      auto right_tangent =
+        right_segment == upper_hull.end() ? last : right_segment->u;
+
+      if( right_tangent < left_tangent ) std::swap(left_tangent, right_tangent);
+      return {{left_tangent, right_tangent}};
+    } else { 
+      auto left_segment = lower_hull.binary_search(
+          [&](lower_hull_t::iterator const& seg)
+          { return point < seg->v or (seg->v-seg->u)*(point-seg->u) <= 0; });
+      auto left_tangent = left_segment == lower_hull.end() ? first : left_segment->u;
+
+      auto right_segment = lower_hull.binary_search(
+          [&](lower_hull_t::iterator const& seg)
+          { return point < seg->u and (seg->v-seg->u)*(point-seg->u) > 0; });
+      auto right_tangent =
+        right_segment == lower_hull.end() ? last : right_segment->u;
+
+      if( right_tangent < left_tangent ) std::swap(left_tangent, right_tangent);
+      return {{left_tangent, right_tangent}};
+    }
   }
 
+  return {}; // never occurs
 };
 
 template<typename Field>
 std::pair< Point<Field>, Point<Field> >
 DynamicHull<Field>::get_extremal_points (Point<Field> const& direction) const {
-  return {direction, direction};
+  auto const& lower_hull = master_root->lower_hull();
+  auto const& upper_hull = master_root->upper_hull();
+
+  auto first = lower_hull.begin()->u, last = upper_hull.rbegin()->v;
+
+  LineSegment<Field> segment{first, last};
+  if( direction.y > 0 or (direction.y == 0 and direction.x < 0) ) {
+    auto udip = [&direction](upper_hull_t::iterator const& seg)
+    { return ((seg->v - seg->u) ^ direction) <= 0; };
+    auto seg = upper_hull.binary_search(udip);
+    if( seg != upper_hull.end() ) segment = *seg;
+  } else {
+    auto ldip = [&direction](lower_hull_t::iterator const& seg)
+    { return ((seg->v - seg->u) ^ direction) <= 0; };
+    auto seg = lower_hull.binary_search(ldip);
+    if( seg != lower_hull.end() ) segment = *seg;
+  }
+
+  if( (segment.v ^ direction) < (segment.u ^ direction) ) segment.v = segment.u;
+  if( (segment.u ^ direction) < (segment.v ^ direction) ) segment.u = segment.v;
+
+  return {segment.u, segment.v};
 };
 
 
