@@ -20,7 +20,7 @@ but simplifies some of the case analysis by maintaining two sequences (and hence
 [1] F. P. Preparata. 1979. An optimal real-time algorithm for planar convex hulls. Commun. ACM 22, 7 (July 1979), 402–405. DOI:https://doi.org/10.1145/359131.359132
 
 ## Fully dynamic setting.
-In the online setting, we have a stream of point insertion and deletion queries, and the objective is to quickly rebuild
+In the fully dynamic setting, we have a stream of point insertion and deletion queries, and the objective is to quickly rebuild
 the hull without discarding any of the points in the interior.
 Notably there exist real time algorithms with logarithmic complexity, but they tend to have bad constants in practice.
 
