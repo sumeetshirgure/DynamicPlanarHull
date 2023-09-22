@@ -61,6 +61,8 @@ class DynamicHull {
     size_t _leaves = 0;
     TreapNode < Point<Field> > * master_root = nullptr;
 
+    template<typename Callback> void __traverse_set (Callback const&, TreapNode<Point<Field>>*) const;
+
     template<typename TotalOrder> class TreapLeaf : public TreapNode<TotalOrder> {
       TotalOrder point;
       lower_hull_t _lower_hull;
@@ -303,6 +305,23 @@ void DynamicHull<Field>::traverse_upper_hull(Callback const& callback) const {
 template<typename Field>
 DynamicHull<Field>::size_t DynamicHull<Field>::get_num_points() const {
   return _leaves;
+}
+
+template<typename Field>
+template<typename Callback>
+void DynamicHull<Field>::__traverse_set(Callback const& callback, TreapNode<Point<Field>> *ptr) const {
+  if( ptr->is_leaf() ) {
+    callback(ptr->point);
+    return;
+  }
+  auto _ptr = static_cast< TreapBranch<Point<Field>>* >(ptr);
+  __traverse_set(callback, _ptr->left);
+  __traverse_set(callback, _ptr->right);
+}
+
+template<typename Field>
+template<typename Callback>
+void DynamicHull<Field>::traverse_set(Callback const& callback) const {
 }
 
 /******************************************************************************/
