@@ -8,7 +8,7 @@
 
 
 template<typename Element>
-class HullTree {
+class DynamicArray {
 
   struct TreapNode;
 
@@ -21,14 +21,14 @@ class HullTree {
   class reverse_iterator;
 
   template<typename Predicate>
-    static void cut(const Predicate&, HullTree, HullTree&, HullTree&);
+    static void cut(const Predicate&, DynamicArray, DynamicArray&, DynamicArray&);
 
   template<typename Predicate> iterator binary_search(Predicate const&) const;
 
-  static void join(HullTree&, HullTree, HullTree);
+  static void join(DynamicArray&, DynamicArray, DynamicArray);
 
-  HullTree();
-  HullTree(Element const&);
+  DynamicArray();
+  DynamicArray(Element const&);
 
   inline iterator const begin() const;
   inline iterator const end() const;
@@ -59,14 +59,14 @@ class HullTree {
 };
 
 template<typename Element>
-class HullTree<Element>::iterator {
+class DynamicArray<Element>::iterator {
   public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = Element;
     using pointer    = Element*;
     using reference  = Element&;
 
-    iterator(HullTree<Element>::TreapNode*_ptr) : ptr(_ptr) {}
+    iterator(DynamicArray<Element>::TreapNode*_ptr) : ptr(_ptr) {}
 
     reference operator*() const { return ptr->element; }
     pointer operator->() const { return &(ptr->element); }
@@ -87,14 +87,14 @@ class HullTree<Element>::iterator {
 };
 
 template<typename Element>
-class HullTree<Element>::reverse_iterator {
+class DynamicArray<Element>::reverse_iterator {
   public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = Element;
     using pointer    = Element*;
     using reference  = Element&;
 
-    reverse_iterator(HullTree<Element>::TreapNode*_ptr) : ptr(_ptr) {}
+    reverse_iterator(DynamicArray<Element>::TreapNode*_ptr) : ptr(_ptr) {}
 
     reference operator*() const { return ptr->element; }
     pointer operator->() const { return &(ptr->element); }
@@ -116,57 +116,57 @@ class HullTree<Element>::reverse_iterator {
 
 
 template<typename Element>
-std::default_random_engine HullTree<Element>::engine;
+std::default_random_engine DynamicArray<Element>::engine;
 template<typename Element>
-std::uniform_int_distribution< int32_t > HullTree<Element>::rng;
+std::uniform_int_distribution< int32_t > DynamicArray<Element>::rng;
 
 
 
 template<typename Element>
-inline HullTree<Element>::reverse_iterator const HullTree<Element>::rbegin() const
+inline DynamicArray<Element>::reverse_iterator const DynamicArray<Element>::rbegin() const
 { return _rbegin; }
 template<typename Element>
-HullTree<Element>::reverse_iterator const HullTree<Element>::rend() const
+DynamicArray<Element>::reverse_iterator const DynamicArray<Element>::rend() const
 { return _rend; }
 
 template<typename Element>
-inline HullTree<Element>::iterator const HullTree<Element>::begin() const
+inline DynamicArray<Element>::iterator const DynamicArray<Element>::begin() const
 { return _begin; }
 template<typename Element>
-inline HullTree<Element>::iterator const HullTree<Element>::end() const
+inline DynamicArray<Element>::iterator const DynamicArray<Element>::end() const
 { return _end; }
 
 
 template<typename Element>
-struct HullTree<Element>::TreapNode {
-  HullTree<Element>::priority_t priority;
+struct DynamicArray<Element>::TreapNode {
+  DynamicArray<Element>::priority_t priority;
   TreapNode *left = nullptr, *right = nullptr,
             *prev = nullptr, *next = nullptr;
 
   Element element;
 
-  HullTree<Element>::size_t size;
+  DynamicArray<Element>::size_t size;
 
   TreapNode(Element const &_element):
     priority(rng(engine)), element(_element) { }
 };
 
 template<typename Element>
-HullTree<Element>::HullTree() { }
+DynamicArray<Element>::DynamicArray() { }
 
 template<typename Element>
-HullTree<Element>::HullTree(Element const& element) { 
-  treap = new HullTree<Element>::TreapNode(element); 
+DynamicArray<Element>::DynamicArray(Element const& element) { 
+  treap = new DynamicArray<Element>::TreapNode(element); 
   _begin = treap;
   _rbegin = treap;
   treap->size = 1;
 }
 
 template<typename Element>
-void HullTree<Element>::destroy() { erase(treap); }
+void DynamicArray<Element>::destroy() { erase(treap); }
 
 template<typename Element>
-void HullTree<Element>::erase(TreapNode *& root) {
+void DynamicArray<Element>::erase(TreapNode *& root) {
   if( root == nullptr ) return;
   erase(root->left), erase(root->right);
   delete root, root = nullptr;
@@ -175,7 +175,7 @@ void HullTree<Element>::erase(TreapNode *& root) {
 
 template<typename Element>
 template<typename Predicate>
-void HullTree<Element>::__cut(const Predicate &predicate,
+void DynamicArray<Element>::__cut(const Predicate &predicate,
     TreapNode *treap_root, TreapNode *&left_root, TreapNode *&right_root) {
   if( treap_root == nullptr )
     return void(left_root = right_root = nullptr);
@@ -192,8 +192,8 @@ void HullTree<Element>::__cut(const Predicate &predicate,
 
 template<typename Element>
 template<typename Predicate>
-void HullTree<Element>::cut(const Predicate &predicate,
-    HullTree from, HullTree &left, HullTree &right) {
+void DynamicArray<Element>::cut(const Predicate &predicate,
+    DynamicArray from, DynamicArray &left, DynamicArray &right) {
 
   __cut(predicate, from.treap, left.treap, right.treap);
 
@@ -212,7 +212,7 @@ void HullTree<Element>::cut(const Predicate &predicate,
 
 
 template<typename Element>
-void HullTree<Element>::__join(
+void DynamicArray<Element>::__join(
     TreapNode *&root, TreapNode *left_root, TreapNode *right_root) {
   if( left_root == nullptr or right_root == nullptr )
     return void(root = ( left_root == nullptr ? right_root : left_root ));
@@ -228,7 +228,7 @@ void HullTree<Element>::__join(
 }
 
 template<typename Element>
-void HullTree<Element>::join(HullTree &to, HullTree left, HullTree right) {
+void DynamicArray<Element>::join(DynamicArray &to, DynamicArray left, DynamicArray right) {
   auto lt = left.treap, rt = right.treap;
   if( lt != nullptr and rt != nullptr ) {
     while(lt->right != nullptr) lt = lt->right;
@@ -243,9 +243,9 @@ void HullTree<Element>::join(HullTree &to, HullTree left, HullTree right) {
 
 template<typename Element>
 template<typename Predicate>
-HullTree<Element>::iterator 
-HullTree<Element>::binary_search(Predicate const& predicate) const {
-  HullTree<Element>::TreapNode *ptr = treap, *ret = nullptr;
+DynamicArray<Element>::iterator 
+DynamicArray<Element>::binary_search(Predicate const& predicate) const {
+  DynamicArray<Element>::TreapNode *ptr = treap, *ret = nullptr;
   while(ptr != nullptr) {
     if( predicate(iterator(ptr)) ) ret = ptr, ptr = ptr->left;
     else ptr = ptr->right;
@@ -255,6 +255,6 @@ HullTree<Element>::binary_search(Predicate const& predicate) const {
 
 
 template<typename Element>
-HullTree<Element>::size_t HullTree<Element>::get_size() {
+DynamicArray<Element>::size_t DynamicArray<Element>::get_size() {
   return (treap == nullptr ? 0 : treap->size);
 }

@@ -3,10 +3,10 @@
 #include "util/Point.hh"
 #include "util/LineSegment.hh"
 
-#include "dynamic/HullTree.hh"
+#include "dynamic/DynamicArray.hh"
 
 template<typename Field>
-class MergeableUpperHull : public HullTree<LineSegment<Field>> {
+class MergeableUpperHull : public DynamicArray<LineSegment<Field>> {
   friend LineSegment<Field>
     find_upper_bridge<>(MergeableUpperHull const& left, MergeableUpperHull const& right);
 

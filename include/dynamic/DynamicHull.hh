@@ -5,7 +5,7 @@
 #include <iostream>
 #include <cassert>
 
-#include "HullTree.hh"
+#include "DynamicArray.hh"
 #include "MergeableLowerHull.hh"
 #include "MergeableUpperHull.hh"
 
