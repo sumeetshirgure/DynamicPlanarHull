@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/247426882.svg)](https://zenodo.org/badge/latestdoi/247426882)
 
 # Dynamic planar convex hull.
 This repository contains header libraries implementing real time dynamic planar convex hull algorithms.
