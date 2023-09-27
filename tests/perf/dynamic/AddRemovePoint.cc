@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 template<typename Field>
-void test_perf( std::vector< Point<Field> > const& points ) {
+void test_perf( std::vector< Point<Field> > points ) {
 
   auto iter = points.begin();
 
@@ -27,6 +27,9 @@ void test_perf( std::vector< Point<Field> > const& points ) {
       <std::chrono::nanoseconds>(tock - tick).count();
     std::cout << num_points << ':' << runtime << '\n';
   };
+
+  std::default_random_engine random_engine;
+  std::shuffle(std::begin(points), std::end(points), random_engine);
 
   iter = points.begin();
   while( iter != points.end() ) {

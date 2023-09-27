@@ -34,7 +34,7 @@ void test_extremes(
 
   auto test_tangents = dynamic_hull.get_tangents(point);
 
-  // std::cerr << "Ligma " << polygon.size() << " " << to_string(point) << std::endl;
+  // std::cerr << polygon.size() << " " << to_string(point) << std::endl;
   // for(auto const&pt: polygon) std::cerr << " " << to_string(pt); std::cerr << std::endl;
 
   if( outside and test_tangents != std::nullopt ) {
