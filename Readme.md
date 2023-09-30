@@ -45,3 +45,5 @@ Also note that most systems have their compiler search inside /usr/include, so i
 
 Please refer to the makefile for more examples on compiler flags. The compiler must be C++20 compliant for the templates in this library to work.
 Please see the documentation and the test driver code for more details on the API.
+
+To build the user manual, go into the doc subdirectory and run `make pdf`. You should have pdflatex installed.

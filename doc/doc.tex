@@ -1,0 +1,134 @@
+\documentclass[10pt, letterpaper]{article}
+% \usepackage{graphicx}
+
+\title{User manual for the package `dpch`}
+\author{Sumeet Shirgure \thanks{University of Southern California}}
+\date{September 2023}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+This is a header only library, and is intended to be used as is.
+There is no need to install headers to a specific location, but the Makefile contains a `make install` target to create a directory
+called `dpch` in /usr/include where the header files can be stored.
+Note that installing in /usr/include might require super user privileges.
+
+To make sure your compiler finds the header files during usage, add a -I flag
+followed by wherever you have stored the header library.
+Also note that most systems have their compiler search inside /usr/include,
+so if that's where the headers are situated the -I flag shouldn't be necessary.
+
+Please refer to the makefile for more examples on compiler flags.
+The compiler must be C++20 compliant for the templates in this library to work.
+
+Please see the example.cc test driver code for more API details.
+
+The `make` command will by default build tests.
+The developer need not build them as they will always pass.
+
+\section{Sample usage}
+
+Please run the following commands to build the example binary,
+and go through the example.cc file for a sample API usage.
+\begin{verbatim}
+  $ sudo make install
+    ... Installs header to /usr/include ...
+  $ c++ -std=c++20 example.cc -o example
+  $ ./example
+    All assertions passed.
+  $ rm example # If no longer needed
+\end{verbatim}
+% $
+
+\section{API}
+The library provides two headers, one for the online hull that doesn't support
+point deletion, and one for the dynamic hull that does support point deletions.
+They share most of the API, except for an added function \verb|remove_point()|
+in the dynamic hull.
+Hence the C++ interface of just the dynamic hull is shown below :
+
+\begin{verbatim}
+  template <typename Field> class DynamicHull {
+  public:
+    void add_point(Point<Field> const&);
+    /* remove_point not present in Online hull */
+    bool remove_point(Point<Field> const&);
+    std::optional< std::pair< Point<Field>, Point<Field> > >
+      get_tangents (Point<Field> const&);
+    std::pair< Point<Field>, Point<Field> >
+      get_extremal_points(Point<Field> const&);
+  private:
+    // rest of the data structures and algorithms
+  };
+\end{verbatim}
+
+
+\section{Manual}
+
+Once the headers are located somewhere your compiler can find
+(e.g. the /usr/include directory) the following include should work.
+
+\verb|#include <dpch/util/Point.hh>|
+
+Add the line \verb|using namespace dpch;| for convenience.
+
+This header defines a 2D point class named \verb|Point<Field>| where 
+`Field` is a template parameter.
+For discrete fields like the integers, the hull computation becomes exact.
+E.g if you want an integral point, define one as
+\verb|auto point = Point<int>(3, 4);|
+
+To create a dynamic planar hull data structure, use the following lines
+
+\verb|#include <dpch/dynamic/DynamicHull.hh>|
+
+\verb|DynamicHull<int> hull;|
+
+To add a point to it, you can use the function
+
+\verb|hull.add_point(point);|
+
+Once you've added a few points like so, it's time to get the tangents from a
+query point using the \verb|get_tangents()| function like so :
+
+\verb|auto tangents = hull.get_tangents(query_point)|
+
+This is a lot to unpack, so let's take it step by step.
+If the \verb|query_point| was in the interior of the hull at this point,
+then there are no tangents. To check this condition, do :
+
+\verb|tangents == std::nullopt ? <inside> : <outside>|
+
+If this condition fails, \verb|tangents.value()| will store a pair of points
+where the line segments joining them to the query point will form the two
+tangents. To retrieve the corresponding points on the hull, do :
+
+\verb|tangents.value().first, tangents.value().second|
+
+Now let's say your hull has some shape, and you want to find the farthest
+set of points along the direction given by :
+
+\verb|auto direction = Point<Field>(4, 3);|
+
+You can find them quickly using the following line :
+
+\verb|auto far_points = hull.get_extremal_points(direction);|
+
+This returns a pair of points that you can get by doing
+
+\verb|far_points.first| and \verb|far_points.second|
+
+The line segment joining these two points is the section of the hull
+that maximizes the dot product along the \verb|direction| vector.
+If the two points are the same, which will usually be the case,
+then the said line segment is a degenerate point on the hull.
+
+Finally, to remove a point from the set of added points so far, do
+
+\verb|hull.remove_point(point)|
+
+Note that the point must be \emph{exactly} the same as the one inserted
+some point earlier. \verb|dpch| doesn't consider proximity as equality.
+
+\end{document}
