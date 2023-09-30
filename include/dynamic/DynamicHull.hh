@@ -166,35 +166,29 @@ template<typename Field> class DynamicHull {
     }
 
     template< typename TotalOrder > bool remove(
-        TotalOrder const& point, TreapNode<TotalOrder> *&tree, 
-        TreapBranch<TotalOrder> *parent = nullptr) {
+        TotalOrder const& point, TreapNode<TotalOrder> *&tree, TreapBranch<TotalOrder> *parent = nullptr) {
       if( tree == nullptr ) return false;
       if( tree->is_leaf() ) {
         auto leaf = static_cast<TreapLeaf<TotalOrder>*>(tree);
         if( (leaf->hi() < point) or (point < leaf->lo()) ) return false;
         delete leaf, tree = nullptr;
-        _leaves--;
         return true;
       }
       auto _tree = static_cast<TreapBranch<TotalOrder>*>(tree);
       if( (point < _tree->lo()) or (_tree->hi() < point) ) {
         return false;
       }
-
       auto &left_child = _tree->left, &right_child = _tree->right;
       if( (left_child->hi() < point) and (point < right_child->lo()) ) {
         return false;
       }
-
       _tree->push();
-
       bool was_present;
       if( not (left_child->hi() < point) ) {
         was_present = remove(point, left_child, _tree);
       } else {
         was_present = remove(point, right_child, _tree);
       }
-
       if( left_child == nullptr or right_child == nullptr ) {
         auto child = (left_child == nullptr ? right_child : left_child);
         delete _tree;
@@ -207,7 +201,6 @@ template<typename Field> class DynamicHull {
       } else {
         _tree->pull();
       }
-
       return was_present;
     }
 
