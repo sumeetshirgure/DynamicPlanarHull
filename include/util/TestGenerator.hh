@@ -6,19 +6,15 @@
 #include <vector>
 #include <algorithm>
 
-  template<typename Integer>
-std::vector< Point<Integer> > random_int_test(size_t n_points, Integer const& range = 1000000) {
-  // static std::mt19937_64 random_engine(
-  // std::chrono::steady_clock::now().time_since_epoch().count());
+template<typename Integer> std::vector< Point<Integer> > random_int_test(
+    size_t n_points, Integer const& range = 1000000) {
   static std::default_random_engine random_engine;
   static std::uniform_int_distribution< Integer >
     random_generator(0, Integer(range));
 
-  static auto generate_random_point =
-    [] () -> Point< Integer >  {
-      return Point< Integer >(random_generator(random_engine),
-          random_generator(random_engine));
-    };
+  static auto generate_random_point = [] () -> Point< Integer >  {
+    return Point< Integer >(random_generator(random_engine), random_generator(random_engine));
+  };
 
   std::vector< Point<Integer> > points(n_points);
   std::generate(points.begin(), points.end(), generate_random_point);
@@ -30,8 +26,7 @@ std::vector< Point<Integer> > random_int_test(size_t n_points, Integer const& ra
   return points;
 }
 
-template<typename Integer>
-  std::vector< Point<Integer> >
+template<typename Integer> std::vector< Point<Integer> >
 random_circle_int_test(int32_t n_points, Integer radius, bool spiral = false) {
   double omega = 2 * acos(-1) / n_points;
 

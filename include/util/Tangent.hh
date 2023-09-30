@@ -9,23 +9,14 @@ using std::pair;
 
 #include "util/Point.hh"
 
-template<typename Field>
-  std::pair< bool, std::pair< Point<Field>, Point<Field> > >
-get_tangents(Point<Field> const& point,
-    std::vector< Point<Field> > const& convex_polygon,
-    bool strictly_inside = false)
-{
+template<typename Field> std::pair< bool, std::pair< Point<Field>, Point<Field> > >
+get_tangents(Point<Field> const& point, std::vector< Point<Field> > const& convex_polygon) {
   size_t n = convex_polygon.size();
   assert( n >= 3 );
 
   bool outside = false;
-  for(size_t i = 0, j = n - 1; i < n and not outside; j = i++)
-  {
-    if( strictly_inside )
-      outside |= ((point-convex_polygon[j]) *
-          (convex_polygon[i] - convex_polygon[j]) >= 0);
-    outside |= ((point - convex_polygon[j]) *
-        (convex_polygon[i] - convex_polygon[j]) > 0);
+  for(size_t i = 0, j = n - 1; i < n and not outside; j = i++) {
+    outside |= ((point - convex_polygon[j]) * (convex_polygon[i] - convex_polygon[j]) >  0);
   }
 
   std::pair< Point<Field>, Point<Field> > tangents;
@@ -50,11 +41,8 @@ get_tangents(Point<Field> const& point,
   return std::make_pair(true, tangents);
 }
 
-template<typename Field>
-  std::pair< Point<Field>, Point<Field> >
-get_extreme_points(Point<Field> const& direction,
-    std::vector< Point<Field> > const& convex_polygon)
-{
+template<typename Field> std::pair< Point<Field>, Point<Field> >
+get_extreme_points(Point<Field> const& direction, std::vector< Point<Field> > const& convex_polygon) {
   size_t n = convex_polygon.size();
   assert( n >= 3 );
 
@@ -62,17 +50,13 @@ get_extreme_points(Point<Field> const& direction,
   std::pair< Point<Field>, Point<Field> > points;
   points.first = points.second = convex_polygon.front();
   Field max_value = (points.first ^ direction);
-  for(size_t j = 0, i = 1; i < n; j = i++)
-  {
+  for(size_t j = 0, i = 1; i < n; j = i++) {
     auto dot = (convex_polygon[i] ^ direction);
-    if( dot > max_value )
-    {
+    if( dot > max_value ) {
       found = 1;
       max_value = dot;
       points.first = points.second = convex_polygon[i];
-    }
-    else if( dot == max_value )
-    {
+    } else if( dot == max_value ) {
       found = 2;
       points.second = convex_polygon[i];
     }

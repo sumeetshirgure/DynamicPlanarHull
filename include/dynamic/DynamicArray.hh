@@ -7,8 +7,7 @@
 #include <iterator>
 
 
-template<typename Element>
-class DynamicArray {
+template<typename Element> class DynamicArray {
 
   struct TreapNode;
 
@@ -20,8 +19,7 @@ class DynamicArray {
   class iterator;
   class reverse_iterator;
 
-  template<typename Predicate>
-    static void cut(const Predicate&, DynamicArray, DynamicArray&, DynamicArray&);
+  template<typename Predicate> static void cut(const Predicate&, DynamicArray, DynamicArray&, DynamicArray&);
 
   template<typename Predicate> iterator binary_search(Predicate const&) const;
 
@@ -44,9 +42,7 @@ class DynamicArray {
   static std::default_random_engine engine;
   static std::uniform_int_distribution< int32_t > rng;
 
-  template<typename Predicate>
-    static void __cut(const Predicate &,
-        TreapNode *, TreapNode *&, TreapNode *&);
+  template<typename Predicate> static void __cut(const Predicate &, TreapNode *, TreapNode *&, TreapNode *&);
 
   static void __join(TreapNode *&, TreapNode *, TreapNode *);
 
@@ -58,8 +54,7 @@ class DynamicArray {
   void erase(TreapNode *&);
 };
 
-template<typename Element>
-class DynamicArray<Element>::iterator {
+template<typename Element> class DynamicArray<Element>::iterator {
   public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = Element;
@@ -76,18 +71,15 @@ class DynamicArray<Element>::iterator {
     iterator& operator--() { ptr = ptr->prev; return *this; }
     // iterator  operator--(int) { return ptr->prev; }
 
-    friend bool operator== (iterator const& a, iterator const& b)
-    { return a.ptr == b.ptr; }
-    friend bool operator!= (iterator const& a, iterator const& b)
-    { return a.ptr != b.ptr; }
+    friend bool operator== (iterator const& a, iterator const& b) { return a.ptr == b.ptr; }
+    friend bool operator!= (iterator const& a, iterator const& b) { return a.ptr != b.ptr; }
 
   private:
 
     TreapNode * ptr;
 };
 
-template<typename Element>
-class DynamicArray<Element>::reverse_iterator {
+template<typename Element> class DynamicArray<Element>::reverse_iterator {
   public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = Element;
@@ -104,79 +96,57 @@ class DynamicArray<Element>::reverse_iterator {
     reverse_iterator& operator--() { ptr = ptr->next; return *this; }
     // iterator  operator--(int) { return ptr->prev; }
 
-    friend bool operator== (reverse_iterator const& a, reverse_iterator const& b)
-    { return a.ptr == b.ptr; }
-    friend bool operator!= (reverse_iterator const& a, reverse_iterator const& b)
-    { return a.ptr != b.ptr; }
+    friend bool operator== (reverse_iterator const& a, reverse_iterator const& b) { return a.ptr == b.ptr; }
+    friend bool operator!= (reverse_iterator const& a, reverse_iterator const& b) { return a.ptr != b.ptr; }
 
   private:
 
     TreapNode * ptr;
 };
 
+template<typename Element> std::default_random_engine DynamicArray<Element>::engine;
+template<typename Element> std::uniform_int_distribution< int32_t > DynamicArray<Element>::rng;
 
-template<typename Element>
-std::default_random_engine DynamicArray<Element>::engine;
-template<typename Element>
-std::uniform_int_distribution< int32_t > DynamicArray<Element>::rng;
-
-
-
-template<typename Element>
-inline DynamicArray<Element>::reverse_iterator const DynamicArray<Element>::rbegin() const
+template<typename Element> inline DynamicArray<Element>::reverse_iterator const DynamicArray<Element>::rbegin() const
 { return _rbegin; }
-template<typename Element>
-DynamicArray<Element>::reverse_iterator const DynamicArray<Element>::rend() const
+
+template<typename Element> DynamicArray<Element>::reverse_iterator const DynamicArray<Element>::rend() const
 { return _rend; }
 
-template<typename Element>
-inline DynamicArray<Element>::iterator const DynamicArray<Element>::begin() const
+template<typename Element> inline DynamicArray<Element>::iterator const DynamicArray<Element>::begin() const
 { return _begin; }
-template<typename Element>
-inline DynamicArray<Element>::iterator const DynamicArray<Element>::end() const
+
+template<typename Element> inline DynamicArray<Element>::iterator const DynamicArray<Element>::end() const
 { return _end; }
 
-
-template<typename Element>
-struct DynamicArray<Element>::TreapNode {
+template<typename Element> struct DynamicArray<Element>::TreapNode {
   DynamicArray<Element>::priority_t priority;
-  TreapNode *left = nullptr, *right = nullptr,
-            *prev = nullptr, *next = nullptr;
-
+  TreapNode *left = nullptr, *right = nullptr, *prev = nullptr, *next = nullptr;
   Element element;
-
   DynamicArray<Element>::size_t size;
-
   TreapNode(Element const &_element):
     priority(rng(engine)), element(_element) { }
 };
 
-template<typename Element>
-DynamicArray<Element>::DynamicArray() { }
+template<typename Element> DynamicArray<Element>::DynamicArray() { }
 
 template<typename Element>
 DynamicArray<Element>::DynamicArray(Element const& element) { 
   treap = new DynamicArray<Element>::TreapNode(element); 
-  _begin = treap;
-  _rbegin = treap;
+  _begin = treap, _rbegin = treap;
   treap->size = 1;
 }
 
-template<typename Element>
-void DynamicArray<Element>::destroy() { erase(treap); }
+template<typename Element> void DynamicArray<Element>::destroy() { erase(treap); }
 
-template<typename Element>
-void DynamicArray<Element>::erase(TreapNode *& root) {
+template<typename Element> void DynamicArray<Element>::erase(TreapNode *& root) {
   if( root == nullptr ) return;
   erase(root->left), erase(root->right);
   delete root, root = nullptr;
 }
 
-
-template<typename Element>
-template<typename Predicate>
-void DynamicArray<Element>::__cut(const Predicate &predicate,
-    TreapNode *treap_root, TreapNode *&left_root, TreapNode *&right_root) {
+template<typename Element> template<typename Predicate> void DynamicArray<Element>::__cut(
+    Predicate const&predicate, TreapNode *treap_root, TreapNode *&left_root, TreapNode *&right_root) {
   if( treap_root == nullptr )
     return void(left_root = right_root = nullptr);
   if( predicate(iterator(treap_root)) ) {
@@ -190,10 +160,8 @@ void DynamicArray<Element>::__cut(const Predicate &predicate,
     (treap_root->right == nullptr ? 0 : treap_root->right->size);
 }
 
-template<typename Element>
-template<typename Predicate>
-void DynamicArray<Element>::cut(const Predicate &predicate,
-    DynamicArray from, DynamicArray &left, DynamicArray &right) {
+template<typename Element> template<typename Predicate> void DynamicArray<Element>::cut(
+    const Predicate &predicate, DynamicArray from, DynamicArray &left, DynamicArray &right) {
 
   __cut(predicate, from.treap, left.treap, right.treap);
 
@@ -211,9 +179,7 @@ void DynamicArray<Element>::cut(const Predicate &predicate,
 }
 
 
-template<typename Element>
-void DynamicArray<Element>::__join(
-    TreapNode *&root, TreapNode *left_root, TreapNode *right_root) {
+template<typename Element> void DynamicArray<Element>::__join(TreapNode *&root, TreapNode *left_root, TreapNode *right_root) {
   if( left_root == nullptr or right_root == nullptr )
     return void(root = ( left_root == nullptr ? right_root : left_root ));
   if( left_root->priority < right_root->priority ) {
@@ -227,8 +193,7 @@ void DynamicArray<Element>::__join(
     (root->right == nullptr ? 0 : root->right->size);
 }
 
-template<typename Element>
-void DynamicArray<Element>::join(DynamicArray &to, DynamicArray left, DynamicArray right) {
+template<typename Element> void DynamicArray<Element>::join(DynamicArray &to, DynamicArray left, DynamicArray right) {
   auto lt = left.treap, rt = right.treap;
   if( lt != nullptr and rt != nullptr ) {
     while(lt->right != nullptr) lt = lt->right;
@@ -240,10 +205,7 @@ void DynamicArray<Element>::join(DynamicArray &to, DynamicArray left, DynamicArr
   __join(to.treap, left.treap, right.treap);
 }
 
-
-template<typename Element>
-template<typename Predicate>
-DynamicArray<Element>::iterator 
+template<typename Element> template<typename Predicate> DynamicArray<Element>::iterator 
 DynamicArray<Element>::binary_search(Predicate const& predicate) const {
   DynamicArray<Element>::TreapNode *ptr = treap, *ret = nullptr;
   while(ptr != nullptr) {
@@ -253,8 +215,6 @@ DynamicArray<Element>::binary_search(Predicate const& predicate) const {
   return iterator(ret);
 }
 
-
-template<typename Element>
-DynamicArray<Element>::size_t DynamicArray<Element>::get_size() {
+template<typename Element> DynamicArray<Element>::size_t DynamicArray<Element>::get_size() {
   return (treap == nullptr ? 0 : treap->size);
 }

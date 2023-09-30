@@ -9,8 +9,7 @@
 #include "MergeableLowerHull.hh"
 #include "MergeableUpperHull.hh"
 
-template<typename Field>
-class DynamicHull {
+template<typename Field> class DynamicHull {
 
   public :
 
@@ -286,16 +285,14 @@ DynamicHull<Field>::size_t DynamicHull<Field>::get_hull_size() const {
   return get_lower_hull_size() + get_upper_hull_size();
 }
 
-template<typename Field>
-template<typename Callback>
+template<typename Field> template<typename Callback>
 void DynamicHull<Field>::traverse_lower_hull(Callback const& callback) const {
   if( master_root == nullptr ) return;
   for(auto const segment: master_root->lower_hull())
     callback(segment);
 }
 
-template<typename Field>
-template<typename Callback> 
+template<typename Field> template<typename Callback> 
 void DynamicHull<Field>::traverse_upper_hull(Callback const& callback) const {
   if( master_root == nullptr ) return;
   for(auto segment: master_root->upper_hull())
@@ -307,29 +304,19 @@ DynamicHull<Field>::size_t DynamicHull<Field>::get_num_points() const {
   return _leaves;
 }
 
-template<typename Field>
-template<typename Callback>
+template<typename Field> template<typename Callback>
 void DynamicHull<Field>::__traverse_set(Callback const& callback, TreapNode<Point<Field>> *ptr) const {
-  if( ptr->is_leaf() ) {
-    callback(ptr->point);
-    return;
-  }
+  if( ptr->is_leaf() ) { callback(ptr->point); return; }
   auto _ptr = static_cast< TreapBranch<Point<Field>>* >(ptr);
-  __traverse_set(callback, _ptr->left);
-  __traverse_set(callback, _ptr->right);
+  __traverse_set(callback, _ptr->left), __traverse_set(callback, _ptr->right);
 }
 
-template<typename Field>
-template<typename Callback>
-void DynamicHull<Field>::traverse_set(Callback const& callback) const {
-}
+template<typename Field> template<typename Callback>
+void DynamicHull<Field>::traverse_set(Callback const& callback) const { __traverse_set(callback, master_root); }
 
-/******************************************************************************/
-/******Point in polygon, tangent and farthes point queries.********************/
-/******************************************************************************/
+/* Point in polygon, tangent and farthest point queries. */
 
-template<typename Field>
-bool DynamicHull<Field>::point_in_polygon(Point<Field> const& point) {
+template<typename Field> bool DynamicHull<Field>::point_in_polygon(Point<Field> const& point) {
   auto const& lower_hull = master_root->lower_hull();
   auto const& upper_hull = master_root->upper_hull();
 
@@ -346,8 +333,7 @@ bool DynamicHull<Field>::point_in_polygon(Point<Field> const& point) {
   return lower_enclosed and upper_enclosed;
 }
 
-template<typename Field>
-std::optional< std::pair< Point<Field>, Point<Field> > >
+template<typename Field> std::optional< std::pair< Point<Field>, Point<Field> > >
 DynamicHull<Field>::get_tangents (Point<Field> const& point) const {
   if( get_hull_size() <= 2 ) {
     auto ret = *(master_root->lower_hull().begin());
@@ -427,8 +413,7 @@ DynamicHull<Field>::get_tangents (Point<Field> const& point) const {
   return {}; // never occurs
 };
 
-template<typename Field>
-std::pair< Point<Field>, Point<Field> >
+template<typename Field> std::pair< Point<Field>, Point<Field> >
 DynamicHull<Field>::get_extremal_points (Point<Field> const& direction) const {
   auto const& lower_hull = master_root->lower_hull();
   auto const& upper_hull = master_root->upper_hull();
@@ -453,5 +438,3 @@ DynamicHull<Field>::get_extremal_points (Point<Field> const& direction) const {
 
   return {segment.u, segment.v};
 };
-
-

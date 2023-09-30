@@ -3,15 +3,14 @@
 #include <cmath>
 #include <string>
 
-template<typename T> struct Point
-{
-	T x, y;
-	Point() : x(0), y(0) {}
-	Point(const T&_x, const T&_y) : x(_x), y(_y) {}
+template<typename T> struct Point {
+  T x, y;
+  Point() : x(0), y(0) {}
+  Point(const T&_x, const T&_y) : x(_x), y(_y) {}
 
-	inline T norm2() const& { return x*x+y*y; }
-	inline auto norm() -> decltype(sqrt(norm2())) {return sqrt(norm2());}
-	inline auto arg()  -> decltype(atan2(y, x))   {return atan2(y, x);}
+  inline T norm2() const& { return x*x+y*y; }
+  inline auto norm() -> decltype(sqrt(norm2())) {return sqrt(norm2());}
+  inline auto arg()  -> decltype(atan2(y, x))   {return atan2(y, x);}
 };
 
 /* Vector sums. */
@@ -44,7 +43,7 @@ template<typename T> T operator^(const Point<T>&p, const Point<T>&q)
 template<typename T> inline bool operator< (const Point<T>&p, const Point<T>&q)
 { return p.x != q.x ? p.x < q.x : p.y < q.y; }
 
- // operator== useful only for integers. use norm(p-q) < eps instead
+// operator== useful only for integers. use norm(p-q) < eps instead
 template<typename T> inline bool operator==(const Point<T>&p, const Point<T>&q)
 { return (p.x == q.x) and (p.y == q.y); }
 
