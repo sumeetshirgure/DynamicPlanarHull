@@ -1,4 +1,8 @@
 // Solving https://open.kattis.com/problems/convexhull as a test.
+// This C++ file doesn't build a binary.
+// Rather, if you go the link above and submit this file after
+// replacing the contents with those of the included static/ConvexHull.hh header
+// you should get and accepted verdict.
 
 #include "static/ConvexHull.hh"
 
@@ -7,45 +11,39 @@
 using point_t = Point<int>;
 using chain_t = vector< point_t > ;
 
-int main()
-{
+int main() {
 
-	int num_vertices;
-	while( std::cin >> num_vertices )
-	{
-		if( num_vertices == 0 )
-			break;
+  int num_vertices;
+  while( std::cin >> num_vertices ) {
+    if( num_vertices == 0 ) break;
 
-		vector< point_t > polygon(num_vertices);
+    vector< point_t > polygon(num_vertices);
 
-		for(auto &point: polygon)
-			std::cin >> point.x >> point.y;
+    for(auto &point: polygon) std::cin >> point.x >> point.y;
 
-		sort(polygon.begin(), polygon.end());
-		polygon.erase(std::unique(polygon.begin(), polygon.end()),
-			polygon.end());
+    sort(polygon.begin(), polygon.end());
+    polygon.erase(std::unique(polygon.begin(), polygon.end()), polygon.end());
 
 
-		auto [lower_chain, upper_chain] = convex_hull(polygon, true);
+    auto [lower_chain, upper_chain] = convex_hull(polygon, true);
 
-		if( polygon.size() == 1 ) // Handle corner case.
-		{
-			std::cout << 1 << std::endl;
-			auto point = polygon.front();
-			std::cout << point.x << " " << point.y << std::endl;
-			continue;
-		}
+    if( polygon.size() == 1 ) {
+      // Handle corner case.
+      std::cout << 1 << std::endl;
+      auto point = polygon.front();
+      std::cout << point.x << " " << point.y << std::endl;
+      continue;
+    }
 
-		std::reverse(upper_chain.begin(), upper_chain.end());
-		lower_chain.pop_back();
-		upper_chain.pop_back();
+    std::reverse(upper_chain.begin(), upper_chain.end());
+    lower_chain.pop_back();
+    upper_chain.pop_back();
 
-		std::cout << lower_chain.size() + upper_chain.size() << std::endl;
-		for(auto &chain: {lower_chain, upper_chain})
-			for(auto point: chain)
-				std::cout << point.x << " " << point.y << "\n";
-		std::cout << std::flush;
-	}
+    std::cout << lower_chain.size() + upper_chain.size() << std::endl;
+    for(auto &chain: {lower_chain, upper_chain})
+      for(auto point: chain) std::cout << point.x << " " << point.y << "\n";
+    std::cout << std::flush;
+  }
 
-	return 0;
+  return 0;
 }

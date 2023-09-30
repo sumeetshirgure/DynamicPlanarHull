@@ -19,7 +19,6 @@ template<typename Field> class DynamicHull {
     using lower_hull_t = MergeableLowerHull<Field>;
     using upper_hull_t = MergeableUpperHull<Field>;
 
-
     void add_point(Point<Field> const&);
     bool remove_point(Point<Field> const&);
 
@@ -252,36 +251,29 @@ template<typename Field> class DynamicHull {
 
 };
 
-template<typename Field>
-std::default_random_engine DynamicHull<Field>::engine;
-template<typename Field>
-std::uniform_int_distribution< int32_t > DynamicHull<Field>::rng;
+template<typename Field> std::default_random_engine DynamicHull<Field>::engine;
+template<typename Field> std::uniform_int_distribution< int32_t > DynamicHull<Field>::rng;
 
-template<typename Field>
-void DynamicHull<Field>::add_point(Point<Field> const& point) {
+template<typename Field> void DynamicHull<Field>::add_point(Point<Field> const& point) {
   insert(point, master_root);
   _leaves++;
 }
 
-template<typename Field>
-bool DynamicHull<Field>::remove_point(Point<Field> const& point) {
+template<typename Field> bool DynamicHull<Field>::remove_point(Point<Field> const& point) {
   bool was_present = remove(point, master_root);
   if( was_present ) _leaves--;
   return was_present;
 }
 
-template<typename Field>
-DynamicHull<Field>::size_t DynamicHull<Field>::get_lower_hull_size() const {
+template<typename Field> DynamicHull<Field>::size_t DynamicHull<Field>::get_lower_hull_size() const {
   return master_root == nullptr ? 0 : master_root->lower_hull().get_size();
 }
 
-template<typename Field>
-DynamicHull<Field>::size_t DynamicHull<Field>::get_upper_hull_size() const {
+template<typename Field> DynamicHull<Field>::size_t DynamicHull<Field>::get_upper_hull_size() const {
   return master_root == nullptr ? 0 : master_root->upper_hull().get_size();
 }
 
-template<typename Field>
-DynamicHull<Field>::size_t DynamicHull<Field>::get_hull_size() const {
+template<typename Field> DynamicHull<Field>::size_t DynamicHull<Field>::get_hull_size() const {
   return get_lower_hull_size() + get_upper_hull_size();
 }
 

@@ -1,15 +1,13 @@
 #include "util/TestGenerator.hh"
 #include "dynamic/DynamicHull.hh"
 
-
 #include <iostream>
 #include <iomanip>
 #include <vector>
 #include <chrono>
 #include <unordered_map>
 
-template<typename Field>
-void test_perf( std::vector< Point<Field> > points ) {
+template<typename Field> void test_perf( std::vector< Point<Field> > points ) {
 
   auto iter = points.begin();
 
@@ -44,18 +42,19 @@ void test_perf( std::vector< Point<Field> > points ) {
       <std::chrono::nanoseconds>(tock - tick).count();
     std::cout << num_points << ':' << runtime << '\n';
   };
-
-
 }
 
 int main(int argc, char* argv[]) {
-  if( argc != 2 ) { return -1; }
-
-  int n_points = std::atoi(argv[1]);
+  int n_points;
+  if( argc != 2 ) {
+    std::cerr << "No argument provided; going with 10k point additions followed by removal." << std::endl;
+    n_points = 10000;
+  } else {
+    n_points = std::atoi(argv[1]);
+  }
 
   std::vector< Point<int64_t> > points =
-    random_circle_int_test<int64_t>(
-        n_points, n_points * (int)(sqrt(n_points)), false);
+    random_circle_int_test<int64_t>(n_points, n_points * (int)(sqrt(n_points)), false);
 
   test_perf(points);
 
