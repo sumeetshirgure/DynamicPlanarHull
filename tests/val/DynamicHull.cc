@@ -58,8 +58,7 @@ template<typename T> void test_extremes(Point<T> const& point, DynamicHull<T> & 
 
 }
 
-  template<typename T>
-void test_val( std::vector< Point<T> > const& points ) {
+template<typename T> void test_val( std::vector< Point<T> > const& points ) {
 
   static std::default_random_engine random_engine;
   static std::uniform_int_distribution< int64_t > random_generator(0, 1000000);

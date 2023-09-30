@@ -1,9 +1,9 @@
 CXX=g++
 CXXFLAGS=-std=c++20 -O3
 
-.PHONY: all clean
+.PHONY: tests clean install uninstall
 
-all: DIR bin/online/val bin/dynamic/val bin/online/perf bin/dynamic/perf
+tests: DIR bin/online/val bin/dynamic/val bin/online/perf bin/dynamic/perf
 
 DIR:
 	mkdir -p ./bin
@@ -29,4 +29,4 @@ install :
 	cp -rvf include/dpch -t /usr/include
 
 uninstall:
-	rm -fr /usr/include/dpch
+	rm -fvr /usr/include/dpch
