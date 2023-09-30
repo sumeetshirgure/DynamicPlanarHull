@@ -8,6 +8,7 @@
 
 #include <iostream>
 
+using namespace dpch;
 using point_t = Point<int>;
 using chain_t = vector< point_t > ;
 

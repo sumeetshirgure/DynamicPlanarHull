@@ -11,6 +11,8 @@
 #include <chrono>
 #include <unordered_map>
 
+using namespace dpch;
+
 template<typename Field> void test_perf( std::vector< Point<Field> > const& points ) {
   assert( points.size() > 2 );
 

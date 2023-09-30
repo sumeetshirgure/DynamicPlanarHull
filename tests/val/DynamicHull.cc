@@ -19,6 +19,7 @@
 #include <vector>
 #include <cassert>
 
+using namespace dpch;
 
 template<typename T> void test_extremes(Point<T> const& point, DynamicHull<T> & dynamic_hull,
     std::vector< Point<T> > const& lower_chain, std::vector< Point<T> > const& upper_chain ) {
