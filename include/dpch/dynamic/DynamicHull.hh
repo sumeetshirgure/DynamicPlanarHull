@@ -5,9 +5,9 @@
 #include <iostream>
 #include <cassert>
 
-#include "DynamicArray.hh"
-#include "MergeableLowerHull.hh"
-#include "MergeableUpperHull.hh"
+#include <dpch/dynamic/DynamicArray.hh>
+#include <dpch/dynamic/MergeableLowerHull.hh>
+#include <dpch/dynamic/MergeableUpperHull.hh>
 
 template<typename Field> class DynamicHull {
 

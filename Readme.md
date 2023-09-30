@@ -34,3 +34,11 @@ I will write a paper documenting the library soon.
 
 [3] https://sumeetshirgure.github.io/jekyll/update/2023/08/29/solving-a-problem-no-one-asked.html
 
+# Installation and requirements
+This is a header only library, and is intended to be used as is.
+There is no need to install headers to a specific location, but the Makefile contains a `make install' target to create a directory called `dpch' in /usr/include where the header files can be stored.
+Note that installing in /usr/include might require super user privileges.
+To make sure your compiler finds the header files during usage, add a -I flag followed by wherever you have stored the header library.
+Note that most systems have their compiler search inside /usr/include, so if that's where the headers are situated the -I flag shouldn't be necessary.
+See the compilation instructions for the test binary for more examples. The compiler must be C++20 compliant for the templates to work.
+Please see the documentation and the test driver code for more details on the API.

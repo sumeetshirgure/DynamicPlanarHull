@@ -2,12 +2,11 @@
  * Validating the correctness of the online hull data structure
  * against the static ConvexHull and gold standard set in util/Tangent.hh.
  */
-
-#include "util/Point.hh"
-#include "util/TestGenerator.hh"
-#include "util/Tangent.hh"
-#include "static/ConvexHull.hh"
-#include "online/OnlineHull.hh"
+#include <dpch/util/Point.hh>
+#include <dpch/util/TestGenerator.hh>
+#include <dpch/util/Tangent.hh>
+#include <dpch/static/ConvexHull.hh>
+#include <dpch/online/OnlineHull.hh>
 
 #include <chrono>
 #include <cmath>

@@ -7,7 +7,7 @@
 using std::vector;
 using std::pair;
 
-#include "util/Point.hh"
+#include <dpch/util/Point.hh>
 
 template<typename Field> std::pair< bool, std::pair< Point<Field>, Point<Field> > >
 get_tangents(Point<Field> const& point, std::vector< Point<Field> > const& convex_polygon) {

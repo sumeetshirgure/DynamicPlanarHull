@@ -1,5 +1,5 @@
-#include "util/TestGenerator.hh"
-#include "dynamic/DynamicHull.hh"
+#include <dpch/util/TestGenerator.hh>
+#include <dpch/dynamic/DynamicHull.hh>
 
 #include <iostream>
 #include <iomanip>

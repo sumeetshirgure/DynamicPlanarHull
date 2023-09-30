@@ -1,8 +1,8 @@
-#include "util/Point.hh"
-#include "util/Tangent.hh"
-#include "util/TestGenerator.hh"
-#include "static/ConvexHull.hh"
-#include "online/OnlineHull.hh"
+#include <dpch/util/Point.hh>
+#include <dpch/util/Tangent.hh>
+#include <dpch/util/TestGenerator.hh>
+#include <dpch/static/ConvexHull.hh>
+#include <dpch/online/OnlineHull.hh>
 
 
 #include <iostream>

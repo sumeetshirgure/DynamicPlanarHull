@@ -4,7 +4,7 @@
 // replacing the contents with those of the included static/ConvexHull.hh header
 // you should get and accepted verdict.
 
-#include "static/ConvexHull.hh"
+#include <dpch/static/ConvexHull.hh>
 
 #include <iostream>
 

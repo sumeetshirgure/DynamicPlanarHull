@@ -4,12 +4,12 @@
  */
 
 
-#include "util/Point.hh"
-#include "util/LineSegment.hh"
-#include "util/TestGenerator.hh"
-#include "util/Tangent.hh"
-#include "static/ConvexHull.hh"
-#include "dynamic/DynamicHull.hh"
+#include <dpch/util/Point.hh>
+#include <dpch/util/LineSegment.hh>
+#include <dpch/util/TestGenerator.hh>
+#include <dpch/util/Tangent.hh>
+#include <dpch/static/ConvexHull.hh>
+#include <dpch/dynamic/DynamicHull.hh>
 
 #include <chrono>
 #include <cmath>

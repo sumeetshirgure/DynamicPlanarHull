@@ -25,3 +25,8 @@ clean :
 	rm -rvf bin/*
 	rmdir bin
 
+install :
+	cp -rvf include/dpch -t /usr/include
+
+uninstall:
+	rm -fr /usr/include/dpch

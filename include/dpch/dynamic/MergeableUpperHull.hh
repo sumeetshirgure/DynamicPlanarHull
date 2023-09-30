@@ -1,9 +1,8 @@
 #pragma once
 
-#include "util/Point.hh"
-#include "util/LineSegment.hh"
-
-#include "dynamic/DynamicArray.hh"
+#include <dpch/util/Point.hh>
+#include <dpch/util/LineSegment.hh>
+#include <dpch/dynamic/DynamicArray.hh>
 
 template<typename Field>
 class MergeableUpperHull : public DynamicArray<LineSegment<Field>> {

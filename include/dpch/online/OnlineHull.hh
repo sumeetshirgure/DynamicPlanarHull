@@ -6,7 +6,7 @@
 #include <list>
 #include <queue>
 
-#include "util/Point.hh"
+#include <dpch/util/Point.hh>
 
 template<typename Field>
 class OnlineHull {
