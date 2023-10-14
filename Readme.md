@@ -1,4 +1,5 @@
-[![DOI](https://zenodo.org/badge/247426882.svg)](https://zenodo.org/badge/latestdoi/247426882)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8396184.svg)](https://doi.org/10.5281/zenodo.8396184)
+
 
 # Dynamic planar convex hull.
 This repository contains header libraries implementing real time dynamic planar convex hull algorithms.
@@ -25,14 +26,12 @@ In the fully dynamic setting, we have a stream of point insertion and deletion q
 the hull without discarding any of the points in the interior.
 Notably there exist real time algorithms with logarithmic complexity, but they tend to have bad constants in practice.
 
-This implementation uses ideas presented in the book [2] and the blog post in [3] and answers queries in a time
+This implementation uses ideas presented in the book [2] and a blog post in [3] and answers queries in a time
 proportional to the square of the logarithm of the total number of points, regardless of the size of the hull.
-Please see the notebook in notes/dynamic for performace tests.
-I will write a paper documenting the library soon.
 
 [2] "Computational Geometry - An Introduction." Franco P. Preparata, Michael Ian Shamos (1985) DOI:https://doi.org/10.1007/978-1-4612-1098-6
 
-[3] https://sumeetshirgure.github.io/jekyll/update/2023/08/29/solving-a-problem-no-one-asked.html
+[3] https://sumeetshirgure.github.io
 
 # Installation and requirements
 This is a header only library, and is intended to be used as is.
