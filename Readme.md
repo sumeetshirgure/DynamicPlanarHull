@@ -46,3 +46,20 @@ Please refer to the makefile for more examples on compiler flags. The compiler m
 Please see the documentation and the test driver code for more details on the API.
 
 To build the user manual, go into the doc subdirectory and run `make pdf`. You should have pdflatex installed.
+
+# Citation
+Please cite this work using either the citation generated on the Zenodo website linked at the top of the Readme or using the following BibTeX
+```
+@software{sumeet_shirgure_2023_8396184,
+  author       = {Sumeet Shirgure},
+  title        = {sumeetshirgure/DynamicPlanarHull: Release version
+                   1.1.0
+                  },
+  month        = oct,
+  year         = 2023,
+  publisher    = {Zenodo},
+  version      = {v1.1.0},
+  doi          = {10.5281/zenodo.8396184},
+  url          = {https://doi.org/10.5281/zenodo.8396184},
+}
+```
